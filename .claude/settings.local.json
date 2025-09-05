@@ -18,7 +18,8 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_SYvgiiqFeP/**)",
-      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_0FG51TAGkB/**)"
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_0FG51TAGkB/**)",
+      "Bash(pnpm install:*)"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"
