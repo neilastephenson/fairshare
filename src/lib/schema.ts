@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, numeric, uuid, index } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -48,4 +48,93 @@ export const verification = pgTable("verification", {
   expiresAt: timestamp("expiresAt").notNull(),
   createdAt: timestamp("createdAt").defaultNow(),
   updatedAt: timestamp("updatedAt").defaultNow(),
+});
+
+// FairShare specific tables
+
+export const group = pgTable("group", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  description: text("description"),
+  inviteCode: text("inviteCode").notNull().unique(),
+  createdBy: text("createdBy")
+    .notNull()
+    .references(() => user.id, { onDelete: "restrict" }),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+}, (table) => {
+  return {
+    inviteCodeIdx: index("group_invite_code_idx").on(table.inviteCode),
+  };
+});
+
+export const groupMember = pgTable("groupMember", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  groupId: uuid("groupId")
+    .notNull()
+    .references(() => group.id, { onDelete: "cascade" }),
+  userId: text("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  role: text("role").notNull().default("member"), // 'admin' or 'member'
+  joinedAt: timestamp("joinedAt").notNull().defaultNow(),
+}, (table) => {
+  return {
+    groupUserIdx: index("group_member_group_user_idx").on(table.groupId, table.userId),
+  };
+});
+
+export const expense = pgTable("expense", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  groupId: uuid("groupId")
+    .notNull()
+    .references(() => group.id, { onDelete: "cascade" }),
+  paidBy: text("paidBy")
+    .notNull()
+    .references(() => user.id, { onDelete: "restrict" }),
+  amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+  description: text("description").notNull(),
+  category: text("category"),
+  date: timestamp("date").notNull().defaultNow(),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+}, (table) => {
+  return {
+    groupIdx: index("expense_group_idx").on(table.groupId),
+    paidByIdx: index("expense_paid_by_idx").on(table.paidBy),
+  };
+});
+
+export const expenseParticipant = pgTable("expenseParticipant", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  expenseId: uuid("expenseId")
+    .notNull()
+    .references(() => expense.id, { onDelete: "cascade" }),
+  userId: text("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "restrict" }),
+  shareAmount: numeric("shareAmount", { precision: 12, scale: 2 }).notNull(),
+}, (table) => {
+  return {
+    expenseUserIdx: index("expense_participant_expense_user_idx").on(table.expenseId, table.userId),
+  };
+});
+
+export const activityLog = pgTable("activityLog", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  groupId: uuid("groupId")
+    .notNull()
+    .references(() => group.id, { onDelete: "cascade" }),
+  userId: text("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "restrict" }),
+  action: text("action").notNull(), // 'expense_added', 'expense_edited', 'expense_deleted', 'member_joined', 'member_left'
+  entityType: text("entityType"), // 'expense', 'member'
+  entityId: text("entityId"), // ID of the affected entity
+  metadata: text("metadata"), // JSON string for additional data
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+}, (table) => {
+  return {
+    groupIdx: index("activity_log_group_idx").on(table.groupId),
+  };
 });

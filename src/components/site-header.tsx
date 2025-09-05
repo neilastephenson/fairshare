@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { UserProfile } from "@/components/auth/user-profile";
 import { ModeToggle } from "./ui/mode-toggle";
-import { Bot } from "lucide-react";
+import { Receipt } from "lucide-react";
 
 export function SiteHeader() {
   return (
@@ -13,10 +13,10 @@ export function SiteHeader() {
             className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
           >
             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
-              <Bot className="h-5 w-5" />
+              <Receipt className="h-5 w-5" />
             </div>
             <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Starter Kit
+              FairShare
             </span>
           </Link>
         </h1>

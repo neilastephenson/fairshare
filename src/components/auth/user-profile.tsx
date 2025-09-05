@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Users } from "lucide-react";
 
 export function UserProfile() {
   const { data: session, isPending } = useSession();
@@ -24,11 +24,7 @@ export function UserProfile() {
   }
 
   if (!session) {
-    return (
-      <div className="flex flex-col items-center gap-4 p-6">
-        <SignInButton />
-      </div>
-    );
+    return <SignInButton />;
   }
 
   const handleSignOut = async () => {
@@ -68,9 +64,15 @@ export function UserProfile() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
+          <Link href="/groups" className="flex items-center">
+            <Users className="mr-2 h-4 w-4" />
+            My Groups
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
           <Link href="/profile" className="flex items-center">
             <User className="mr-2 h-4 w-4" />
-            Your Profile
+            Profile Settings
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />

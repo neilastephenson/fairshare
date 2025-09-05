@@ -4,6 +4,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { Toaster } from "@/components/ui/toaster";
+import { DebugAuth } from "@/components/debug-auth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,9 +18,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Agentic Coding Boilerplate",
+  title: "FairShare - Split Expenses, Not Friendships",
   description:
-    "Complete agentic coding boilerplate with authentication, database, AI integration, and modern tooling - perfect for building AI-powered applications and autonomous agents by Leon van Zyl",
+    "Track shared expenses, calculate balances, and settle up with minimal transactions. Perfect for trips, roommates, and group activities.",
 };
 
 export default function RootLayout({
@@ -40,6 +42,8 @@ export default function RootLayout({
           <SiteHeader />
           {children}
           <SiteFooter />
+          <Toaster />
+          <DebugAuth />
         </ThemeProvider>
       </body>
     </html>
