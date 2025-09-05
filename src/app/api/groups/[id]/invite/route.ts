@@ -55,7 +55,7 @@ export async function GET(
 
     return NextResponse.json({ 
       inviteCode: groupData[0].inviteCode,
-      inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/invite/${groupData[0].inviteCode}`
+      inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin}/invite/${groupData[0].inviteCode}`
     });
 
   } catch (error) {
@@ -116,7 +116,7 @@ export async function POST(
     return NextResponse.json({ 
       success: true,
       inviteCode: newInviteCode,
-      inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/invite/${newInviteCode}`
+      inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin}/invite/${newInviteCode}`
     });
 
   } catch (error) {
