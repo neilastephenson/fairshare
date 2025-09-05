@@ -65,33 +65,35 @@ export default async function GroupPage({ params }: GroupPageProps) {
   const isAdmin = groupInfo.role === 'admin';
 
   return (
-    <main className="flex-1 container mx-auto px-4 py-8">
-      <div className="max-w-6xl mx-auto">
+    <main className="flex-1 container mx-auto px-4 py-8 min-w-0">
+      <div className="max-w-6xl mx-auto min-w-0">
         {/* Group Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Users className="h-6 w-6 text-primary" />
+        <div className="mb-8 min-w-0">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                <Users className="h-6 w-6 text-primary" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-2xl sm:text-3xl font-bold truncate">{groupInfo.group.name}</h1>
+                {groupInfo.group.description && (
+                  <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+                    {groupInfo.group.description}
+                  </p>
+                )}
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold">{groupInfo.group.name}</h1>
-              {groupInfo.group.description && (
-                <p className="text-muted-foreground mt-1">
-                  {groupInfo.group.description}
-                </p>
-              )}
-            </div>
-            <div className="ml-auto">
+            <div className="flex-shrink-0 self-start sm:self-auto">
               <Badge variant={isAdmin ? "default" : "secondary"}>
                 {isAdmin ? "Admin" : "Member"}
               </Badge>
             </div>
           </div>
           
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span>Created by {groupInfo.creator?.name}</span>
-            <span>•</span>
-            <span>Created {new Date(groupInfo.group.createdAt).toLocaleDateString()}</span>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
+            <span className="truncate">Created by {groupInfo.creator?.name}</span>
+            <span className="hidden sm:inline">•</span>
+            <span className="truncate">Created {new Date(groupInfo.group.createdAt).toLocaleDateString()}</span>
           </div>
         </div>
 
@@ -109,27 +111,27 @@ export default async function GroupPage({ params }: GroupPageProps) {
         )}
 
         {/* Main Tabs */}
-        <Tabs defaultValue="expenses" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="expenses" className="flex items-center gap-2">
-              <Receipt className="h-4 w-4" />
-              <span className="hidden sm:inline">Expenses</span>
+        <Tabs defaultValue="expenses" className="w-full min-w-0">
+          <TabsList className="grid w-full grid-cols-5 h-auto">
+            <TabsTrigger value="expenses" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-2 text-xs sm:text-sm">
+              <Receipt className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">Expenses</span>
             </TabsTrigger>
-            <TabsTrigger value="balances" className="flex items-center gap-2">
-              <Calculator className="h-4 w-4" />
-              <span className="hidden sm:inline">Balances</span>
+            <TabsTrigger value="balances" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-2 text-xs sm:text-sm">
+              <Calculator className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">Balances</span>
             </TabsTrigger>
-            <TabsTrigger value="settle" className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              <span className="hidden sm:inline">Settle Up</span>
+            <TabsTrigger value="settle" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-2 text-xs sm:text-sm">
+              <CreditCard className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">Settle Up</span>
             </TabsTrigger>
-            <TabsTrigger value="members" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Members</span>
+            <TabsTrigger value="members" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-2 text-xs sm:text-sm">
+              <Users className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">Members</span>
             </TabsTrigger>
-            <TabsTrigger value="activity" className="flex items-center gap-2">
-              <Activity className="h-4 w-4" />
-              <span className="hidden sm:inline">Activity</span>
+            <TabsTrigger value="activity" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-2 text-xs sm:text-sm">
+              <Activity className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">Activity</span>
             </TabsTrigger>
           </TabsList>
 

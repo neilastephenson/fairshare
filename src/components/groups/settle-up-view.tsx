@@ -164,45 +164,45 @@ export function SettleUpView({ groupId }: SettleUpViewProps) {
             <div className="space-y-4">
               {settlements.map((transaction, index) => (
                 <div key={index}>
-                  <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-lg border bg-card space-y-4 sm:space-y-0">
                     {/* From User */}
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-10 w-10">
+                    <div className="flex items-center space-x-3 min-w-0 flex-1">
+                      <Avatar className="h-10 w-10 flex-shrink-0">
                         <AvatarImage src={transaction.from.image} />
                         <AvatarFallback>
                           {transaction.from.name.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <div>
-                        <p className="font-medium">{transaction.from.name}</p>
-                        <p className="text-sm text-muted-foreground">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">{transaction.from.name}</p>
+                        <p className="text-sm text-muted-foreground truncate">
                           {transaction.from.email}
                         </p>
                       </div>
                     </div>
 
                     {/* Arrow and Amount */}
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center justify-center w-full sm:w-auto sm:flex-shrink-0 sm:mx-4">
                       <div className="text-center">
-                        <div className="flex items-center space-x-2 text-muted-foreground">
+                        <div className="flex items-center justify-center space-x-2 text-muted-foreground">
                           <span className="text-sm">pays</span>
                           <ArrowRight className="h-4 w-4" />
                         </div>
-                        <Badge variant="outline" className="mt-1 font-semibold text-lg px-3 py-1">
+                        <Badge variant="outline" className="mt-1 font-semibold text-lg px-3 py-1 whitespace-nowrap">
                           {formatCurrency(transaction.amount)}
                         </Badge>
                       </div>
                     </div>
 
                     {/* To User */}
-                    <div className="flex items-center space-x-3">
-                      <div className="text-right">
-                        <p className="font-medium">{transaction.to.name}</p>
-                        <p className="text-sm text-muted-foreground">
+                    <div className="flex items-center space-x-3 min-w-0 flex-1 sm:justify-end">
+                      <div className="text-left sm:text-right min-w-0 flex-1 sm:flex-initial order-2 sm:order-1">
+                        <p className="font-medium truncate">{transaction.to.name}</p>
+                        <p className="text-sm text-muted-foreground truncate">
                           {transaction.to.email}
                         </p>
                       </div>
-                      <Avatar className="h-10 w-10">
+                      <Avatar className="h-10 w-10 flex-shrink-0 order-1 sm:order-2">
                         <AvatarImage src={transaction.to.image} />
                         <AvatarFallback>
                           {transaction.to.name.charAt(0).toUpperCase()}
@@ -250,7 +250,7 @@ export function SettleUpView({ groupId }: SettleUpViewProps) {
             <CardTitle>Popular Payment Methods</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="text-center p-4 border rounded-lg">
                 <div className="font-semibold mb-2">Venmo</div>
                 <p className="text-sm text-muted-foreground">
@@ -263,7 +263,7 @@ export function SettleUpView({ groupId }: SettleUpViewProps) {
                   Secure online payments worldwide
                 </p>
               </div>
-              <div className="text-center p-4 border rounded-lg">
+              <div className="text-center p-4 border rounded-lg sm:col-span-2 lg:col-span-1">
                 <div className="font-semibold mb-2">Cash App</div>
                 <p className="text-sm text-muted-foreground">
                   Instant transfers with just a phone number
