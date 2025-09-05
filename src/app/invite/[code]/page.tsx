@@ -20,7 +20,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
   });
 
   if (!session?.user) {
-    redirect("/api/auth/signin");
+    redirect(`/signin?callbackUrl=${encodeURIComponent(`/invite/${(await params).code}`)}`);
   }
 
   const { code: inviteCode } = await params;
