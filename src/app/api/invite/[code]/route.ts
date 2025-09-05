@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { group, groupMember, user, activityLog } from "@/lib/schema";
 import { eq, and } from "drizzle-orm";
-import { nanoid } from "nanoid";
 
 // POST /api/invite/[code] - Join a group using invite code
 export async function POST(
@@ -51,7 +50,6 @@ export async function POST(
 
     // Add user to group
     await db.insert(groupMember).values({
-      id: nanoid(),
       groupId: groupRecord.id,
       userId: session.user.id,
       role: "member",
@@ -60,7 +58,6 @@ export async function POST(
 
     // Log activity
     await db.insert(activityLog).values({
-      id: nanoid(),
       groupId: groupRecord.id,
       userId: session.user.id,
       action: "member_joined",

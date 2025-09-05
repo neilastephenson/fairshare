@@ -19,7 +19,9 @@
       "Bash(git push:*)",
       "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_SYvgiiqFeP/**)",
       "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_0FG51TAGkB/**)",
-      "Bash(pnpm install:*)"
+      "Bash(pnpm install:*)",
+      "Bash(pnpm run lint:*)",
+      "Bash(pnpm run:*)"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"
