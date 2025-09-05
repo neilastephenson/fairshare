@@ -1,7 +1,7 @@
-# FairShare - Expense Splitting Application
+# FayrShare - Expense Splitting Application
 
 ## Overview
-FairShare is a mobile-first expense tracking and splitting application designed to simplify shared expenses among groups of people. It provides real-time balance calculations, optimized settlement plans, and complete transparency through activity logging.
+FayrShare is a mobile-first expense tracking and splitting application designed to simplify shared expenses among groups of people. It provides real-time balance calculations, optimized settlement plans, and complete transparency through activity logging.
 
 ## Core Features
 
@@ -133,4 +133,4 @@ The application uses a greedy algorithm to minimize transactions:
 - Advanced reporting
 
 ## API Documentation
-See [API Reference](./fairshare-api.md) for detailed endpoint documentation.
+See [API Reference](./fayrshare-api.md) for detailed endpoint documentation.

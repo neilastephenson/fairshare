@@ -22,7 +22,8 @@
       "Bash(pnpm install:*)",
       "Bash(pnpm run lint:*)",
       "Bash(pnpm run:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_mLCzjLzhBf/**)"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"

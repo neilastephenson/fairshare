@@ -16,7 +16,7 @@ export function SiteHeader() {
               <Receipt className="h-5 w-5" />
             </div>
             <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent truncate">
-              FairShare
+              FayrShare
             </span>
           </Link>
         </h1>

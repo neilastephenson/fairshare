@@ -81,7 +81,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
             </div>
             <CardTitle className="text-2xl">Join Group</CardTitle>
             <CardDescription>
-              You&apos;ve been invited to join a FairShare group
+              You&apos;ve been invited to join a FayrShare group
             </CardDescription>
           </CardHeader>
           

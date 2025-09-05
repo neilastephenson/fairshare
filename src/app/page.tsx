@@ -66,7 +66,7 @@ export default function Home() {
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">Everything You Need</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            FairShare makes group expense tracking simple and transparent
+            FayrShare makes group expense tracking simple and transparent
           </p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -169,7 +169,7 @@ export default function Home() {
       <section className="container mx-auto px-4 py-16 border-t">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
-            <h2 className="text-3xl font-bold">Why Choose FairShare?</h2>
+            <h2 className="text-3xl font-bold">Why Choose FayrShare?</h2>
             <div className="space-y-4">
               <div className="flex gap-3">
                 <Smartphone className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
@@ -204,7 +204,7 @@ export default function Home() {
             <div className="text-5xl font-bold text-primary mb-2">100%</div>
             <div className="text-xl font-semibold mb-4">Free to Use</div>
             <p className="text-muted-foreground">
-              No hidden fees, no premium tiers. FairShare is completely free for all users.
+              No hidden fees, no premium tiers. FayrShare is completely free for all users.
             </p>
           </div>
         </div>
@@ -217,7 +217,7 @@ export default function Home() {
             Ready to Simplify Group Expenses?
           </h2>
           <p className="text-lg mb-6 opacity-90 max-w-2xl mx-auto">
-            Join thousands of groups already using FairShare to track and settle shared expenses.
+            Join thousands of groups already using FayrShare to track and settle shared expenses.
           </p>
           {!session && (
             <Button 

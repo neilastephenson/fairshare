@@ -58,7 +58,7 @@ function SignInContent() {
             <div className="mx-auto mb-4 p-3 rounded-full bg-primary/10">
               <LogIn className="h-8 w-8 text-primary" />
             </div>
-            <CardTitle className="text-2xl">Welcome to FairShare</CardTitle>
+            <CardTitle className="text-2xl">Welcome to FayrShare</CardTitle>
             <CardDescription>
               Sign in to continue to your group invitation
             </CardDescription>

@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FairShare - Split Expenses, Not Friendships",
+  title: "FayrShare - Split Expenses, Not Friendships",
   description:
     "Track shared expenses, calculate balances, and settle up with minimal transactions. Perfect for trips, roommates, and group activities.",
 };

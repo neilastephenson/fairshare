@@ -1,4 +1,4 @@
-# FairShare API Reference
+# FayrShare API Reference
 
 ## Authentication
 All API endpoints require authentication via Better Auth session cookies, except for public invite endpoints.

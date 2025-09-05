@@ -1,4 +1,4 @@
-# FairShare Implementation Guide
+# FayrShare Implementation Guide
 
 ## Project Structure
 

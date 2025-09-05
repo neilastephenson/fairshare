@@ -69,7 +69,7 @@ This allows for easy model switching without code changes and ensures consistenc
 The project already includes several shadcn/ui components (button, dialog, avatar, etc.) and follows their design system. Always check the [shadcn/ui documentation](https://ui.shadcn.com/docs/components) for available components before implementing alternatives.
 
 ## What I Want to Build
-FairShare is a mobile-first application designed to simplify expense tracking and cost-splitting among groups of people, such as friends on holiday, housemates, or family. The core concept is to provide a central place where users can create a group, invite members, log shared expenses, and see a simplified, real-time calculation of who owes whom, minimizing the number of transactions required to settle up. The key value proposition is removing the social awkwardness and complexity of manually tracking and settling shared debts.
+FayrShare is a mobile-first application designed to simplify expense tracking and cost-splitting among groups of people, such as friends on holiday, housemates, or family. The core concept is to provide a central place where users can create a group, invite members, log shared expenses, and see a simplified, real-time calculation of who owes whom, minimizing the number of transactions required to settle up. The key value proposition is removing the social awkwardness and complexity of manually tracking and settling shared debts.
 
 The core user flow is as follows:
 

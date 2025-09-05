@@ -50,7 +50,7 @@ export const verification = pgTable("verification", {
   updatedAt: timestamp("updatedAt").defaultNow(),
 });
 
-// FairShare specific tables
+// FayrShare specific tables
 
 export const group = pgTable("group", {
   id: uuid("id").primaryKey().defaultRandom(),
