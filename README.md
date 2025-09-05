@@ -80,6 +80,9 @@ OPENAI_MODEL="gpt-5-mini"
 
 # App URL (for production deployments)
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
+
+# Auth URL (for authentication redirects - set this to your production domain)
+NEXT_PUBLIC_AUTH_URL="http://localhost:3000"
 ```
 
 ### 4. Database Setup
@@ -202,6 +205,7 @@ Ensure these are set in your production environment:
 - `OPENAI_API_KEY` - OpenAI API key (optional)
 - `OPENAI_MODEL` - OpenAI model name (optional, defaults to gpt-5-mini)
 - `NEXT_PUBLIC_APP_URL` - Your production domain
+- `NEXT_PUBLIC_AUTH_URL` - Your authentication domain (should match your production URL for OAuth redirects)
 
 ## 🎥 Tutorial Video
 

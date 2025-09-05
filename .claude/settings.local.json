@@ -14,7 +14,10 @@
       "Bash(pnpm drizzle-kit:*)",
       "Bash(npm run:*)",
       "Bash(npm install:*)",
-      "Bash(npx shadcn@latest add:*)"
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_SYvgiiqFeP/**)"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"
