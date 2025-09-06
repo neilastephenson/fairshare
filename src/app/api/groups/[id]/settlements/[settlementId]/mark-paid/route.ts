@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string; settlementId: string } }
+  context: { params: Promise<{ id: string; settlementId: string }> }
 ) {
   try {
-    const { id: groupId, settlementId } = params;
+    const { id: groupId, settlementId } = await context.params;
 
     // In a real implementation, this would:
     // 1. Validate the user has permission to mark this settlement as paid
