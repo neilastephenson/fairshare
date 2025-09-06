@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Calculator, TrendingUp, TrendingDown, Equal, DollarSign } from "lucide-react";
 import { toast } from "sonner";
+import { formatAmount } from "@/lib/currency";
 
 interface Balance {
   userId: string;
@@ -20,9 +21,10 @@ interface Balance {
 
 interface BalanceViewProps {
   groupId: string;
+  currency?: string;
 }
 
-export function BalanceView({ groupId }: BalanceViewProps) {
+export function BalanceView({ groupId, currency = "GBP" }: BalanceViewProps) {
   const [balances, setBalances] = useState<Balance[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [groupTotals, setGroupTotals] = useState({
@@ -53,10 +55,7 @@ export function BalanceView({ groupId }: BalanceViewProps) {
   }, [fetchBalances]);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(Math.abs(amount));
+    return formatAmount(Math.abs(amount), currency);
   };
 
   const getBalanceStatus = (netBalance: number) => {

@@ -14,6 +14,7 @@ import { BalanceView } from "@/components/groups/balance-view";
 import { SettleUpView } from "@/components/groups/settle-up-view";
 import { ActivityLog } from "@/components/groups/activity-log";
 import { InviteSection } from "@/components/groups/invite-section";
+import { GroupSettings } from "@/components/groups/group-settings";
 import { Users, Receipt, Calculator, CreditCard, Activity } from "lucide-react";
 
 interface GroupPageProps {
@@ -83,7 +84,16 @@ export default async function GroupPage({ params }: GroupPageProps) {
                 )}
               </div>
             </div>
-            <div className="flex-shrink-0 self-start sm:self-auto">
+            <div className="flex items-center gap-2 flex-shrink-0 self-start sm:self-auto">
+              {isAdmin && (
+                <GroupSettings
+                  groupId={groupId}
+                  groupName={groupInfo.group.name}
+                  groupDescription={groupInfo.group.description}
+                  groupCurrency={groupInfo.group.currency}
+                  isAdmin={isAdmin}
+                />
+              )}
               <Badge variant={isAdmin ? "default" : "secondary"}>
                 {isAdmin ? "Admin" : "Member"}
               </Badge>
@@ -136,15 +146,15 @@ export default async function GroupPage({ params }: GroupPageProps) {
           </TabsList>
 
           <TabsContent value="expenses" className="mt-6">
-            <ExpenseList groupId={groupId} />
+            <ExpenseList groupId={groupId} currency={groupInfo.group.currency} />
           </TabsContent>
 
           <TabsContent value="balances" className="mt-6">
-            <BalanceView groupId={groupId} />
+            <BalanceView groupId={groupId} currency={groupInfo.group.currency} />
           </TabsContent>
 
           <TabsContent value="settle" className="mt-6">
-            <SettleUpView groupId={groupId} />
+            <SettleUpView groupId={groupId} currency={groupInfo.group.currency} />
           </TabsContent>
 
           <TabsContent value="members" className="mt-6">

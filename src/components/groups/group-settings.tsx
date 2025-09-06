@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,32 +21,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Loader2 } from "lucide-react";
+import { Settings, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-export function CreateGroupButton() {
-  const router = useRouter();
+interface GroupSettingsProps {
+  groupId: string;
+  groupName: string;
+  groupDescription?: string | null;
+  groupCurrency: string;
+  isAdmin: boolean;
+}
+
+export function GroupSettings({
+  groupId,
+  groupName,
+  groupDescription,
+  groupCurrency,
+  isAdmin,
+}: GroupSettingsProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    currency: "GBP",
+    name: groupName,
+    description: groupDescription || "",
+    currency: groupCurrency,
   });
+
+  if (!isAdmin) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name.trim()) {
       toast.error("Group name is required");
       return;
     }
 
     setLoading(true);
-    
+
     try {
-      const response = await fetch("/api/groups", {
-        method: "POST",
+      const response = await fetch(`/api/groups/${groupId}`, {
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
@@ -55,19 +71,16 @@ export function CreateGroupButton() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create group");
+        throw new Error("Failed to update group");
       }
-
-      const data = await response.json();
       
-      toast.success("Group created successfully!");
+      toast.success("Group settings updated successfully!");
       setOpen(false);
-      setFormData({ name: "", description: "", currency: "GBP" });
-      router.push(`/groups/${data.id}`);
-      router.refresh();
+      // Force a hard refresh to ensure the new currency is displayed
+      window.location.reload();
     } catch (error) {
-      console.error("Error creating group:", error);
-      toast.error("Failed to create group. Please try again.");
+      console.error("Error updating group:", error);
+      toast.error("Failed to update group settings. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -76,17 +89,17 @@ export function CreateGroupButton() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Create Group
+        <Button variant="outline" size="sm">
+          <Settings className="mr-2 h-4 w-4" />
+          Settings
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Create New Group</DialogTitle>
+            <DialogTitle>Group Settings</DialogTitle>
             <DialogDescription>
-              Create a new expense group to start tracking shared costs with others.
+              Update your group&apos;s information and preferences.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -95,7 +108,9 @@ export function CreateGroupButton() {
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="e.g., Summer Trip 2024"
                 required
                 disabled={loading}
@@ -106,7 +121,9 @@ export function CreateGroupButton() {
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 placeholder="e.g., Road trip expenses for our vacation"
                 rows={3}
                 disabled={loading}
@@ -116,7 +133,9 @@ export function CreateGroupButton() {
               <Label htmlFor="currency">Currency</Label>
               <Select
                 value={formData.currency}
-                onValueChange={(value) => setFormData({ ...formData, currency: value })}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, currency: value })
+                }
                 disabled={loading}
               >
                 <SelectTrigger id="currency">
@@ -134,7 +153,7 @@ export function CreateGroupButton() {
           <DialogFooter>
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {loading ? "Creating..." : "Create Group"}
+              {loading ? "Updating..." : "Save Changes"}
             </Button>
           </DialogFooter>
         </form>

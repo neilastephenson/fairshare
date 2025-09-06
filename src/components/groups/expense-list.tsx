@@ -8,9 +8,10 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 // Removed unused Separator import
 import { AddExpenseDialog } from "./add-expense-dialog";
 import { EditExpenseDialog } from "./edit-expense-dialog";
-import { Receipt, Plus, Trash2, Calendar, User, DollarSign, Edit } from "lucide-react";
+import { Receipt, Plus, Trash2, Calendar, User, Edit } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import { formatAmount } from "@/lib/currency";
 
 interface Expense {
   id: string;
@@ -46,9 +47,10 @@ interface Member {
 
 interface ExpenseListProps {
   groupId: string;
+  currency?: string;
 }
 
-export function ExpenseList({ groupId }: ExpenseListProps) {
+export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -157,7 +159,7 @@ export function ExpenseList({ groupId }: ExpenseListProps) {
             {expenses.length} expense{expenses.length !== 1 ? 's' : ''} recorded
           </p>
         </div>
-        <AddExpenseDialog groupId={groupId} onExpenseAdded={handleExpenseAdded} />
+        <AddExpenseDialog groupId={groupId} currency={currency} onExpenseAdded={handleExpenseAdded} />
       </div>
 
       {expenses.length === 0 ? (
@@ -168,7 +170,7 @@ export function ExpenseList({ groupId }: ExpenseListProps) {
             <p className="text-muted-foreground mb-6">
               Start tracking shared expenses by adding the first one
             </p>
-            <AddExpenseDialog groupId={groupId} onExpenseAdded={handleExpenseAdded}>
+            <AddExpenseDialog groupId={groupId} currency={currency} onExpenseAdded={handleExpenseAdded}>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
                 Add First Expense
@@ -213,9 +215,8 @@ export function ExpenseList({ groupId }: ExpenseListProps) {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-1 text-lg font-semibold">
-                        <DollarSign className="h-4 w-4" />
-                        <span>${parseFloat(expense.amount).toFixed(2)}</span>
+                      <div className="text-lg font-semibold">
+                        {formatAmount(expense.amount, currency)}
                       </div>
 
                       <div className="mt-3">
@@ -236,7 +237,7 @@ export function ExpenseList({ groupId }: ExpenseListProps) {
                               </Avatar>
                               <span>{participant.user.name}</span>
                               <span className="text-muted-foreground">
-                                ${parseFloat(participant.shareAmount).toFixed(2)}
+                                {formatAmount(participant.shareAmount, currency)}
                               </span>
                             </div>
                           ))}
@@ -291,6 +292,7 @@ export function ExpenseList({ groupId }: ExpenseListProps) {
           }}
           members={members}
           groupId={groupId}
+          currency={currency}
           onExpenseUpdated={handleExpenseUpdated}
         />
       )}

@@ -19,6 +19,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Loader2, Calculator } from "lucide-react";
 import { toast } from "sonner";
+import { getCurrencySymbol } from "@/lib/currency";
 
 interface Member {
   id: string;
@@ -30,6 +31,7 @@ interface Member {
 
 interface AddExpenseDialogProps {
   groupId: string;
+  currency?: string;
   onExpenseAdded: () => void;
   children?: React.ReactNode;
 }
@@ -45,7 +47,7 @@ const categories = [
   "Other",
 ];
 
-export function AddExpenseDialog({ groupId, onExpenseAdded, children }: AddExpenseDialogProps) {
+export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, children }: AddExpenseDialogProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
@@ -237,7 +239,7 @@ export function AddExpenseDialog({ groupId, onExpenseAdded, children }: AddExpen
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount *</Label>
+              <Label htmlFor="amount">Amount ({getCurrencySymbol(currency)}) *</Label>
               <Input
                 id="amount"
                 type="number"

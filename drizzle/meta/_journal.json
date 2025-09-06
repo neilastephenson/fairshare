@@ -15,6 +15,13 @@
       "when": 1757064294791,
       "tag": "0001_thin_vengeance",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1757145735927,
+      "tag": "0002_overjoyed_mandrill",
+      "breakpoints": true
     }
   ]
 }

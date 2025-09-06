@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CreditCard, ArrowRight, CheckCircle, Copy, DollarSign, Zap } from "lucide-react";
 import { toast } from "sonner";
+import { formatAmount } from "@/lib/currency";
 
 interface SettlementTransaction {
   from: {
@@ -27,9 +28,10 @@ interface SettlementTransaction {
 
 interface SettleUpViewProps {
   groupId: string;
+  currency?: string;
 }
 
-export function SettleUpView({ groupId }: SettleUpViewProps) {
+export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
   const [settlements, setSettlements] = useState<SettlementTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -55,10 +57,7 @@ export function SettleUpView({ groupId }: SettleUpViewProps) {
   }, [fetchSettlements]);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
+    return formatAmount(amount, currency);
   };
 
   const generatePaymentInstruction = (transaction: SettlementTransaction) => {

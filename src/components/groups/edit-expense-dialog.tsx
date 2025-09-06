@@ -23,6 +23,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Loader2, Calculator } from "lucide-react";
 import { toast } from "sonner";
+import { getCurrencySymbol } from "@/lib/currency";
 
 const EXPENSE_CATEGORIES = [
   "Food & Dining",
@@ -61,6 +62,7 @@ interface EditExpenseDialogProps {
   expense: ExpenseData;
   members: Member[];
   groupId: string;
+  currency?: string;
   onExpenseUpdated: () => void;
 }
 
@@ -70,6 +72,7 @@ export function EditExpenseDialog({
   expense,
   members,
   groupId,
+  currency = "GBP",
   onExpenseUpdated,
 }: EditExpenseDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
@@ -245,7 +248,7 @@ export function EditExpenseDialog({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="amount">Amount ($)</Label>
+                <Label htmlFor="amount">Amount ({getCurrencySymbol(currency)})</Label>
                 <Input
                   id="amount"
                   type="number"

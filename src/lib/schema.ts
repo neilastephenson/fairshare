@@ -56,6 +56,7 @@ export const group = pgTable("group", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   description: text("description"),
+  currency: text("currency").notNull().default("GBP"), // USD, GBP, EUR, or OTHER
   inviteCode: text("inviteCode").notNull().unique(),
   createdBy: text("createdBy")
     .notNull()

@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, description } = body;
+    const { name, description, currency } = body;
 
     if (!name?.trim()) {
       return NextResponse.json(
@@ -25,6 +25,10 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Validate currency
+    const validCurrencies = ["USD", "GBP", "EUR", "OTHER"];
+    const selectedCurrency = currency && validCurrencies.includes(currency) ? currency : "GBP";
 
     // Generate a unique invite code
     const inviteCode = nanoid(10);
@@ -35,6 +39,7 @@ export async function POST(request: NextRequest) {
       .values({
         name: name.trim(),
         description: description?.trim() || null,
+        currency: selectedCurrency,
         inviteCode,
         createdBy: session.user.id,
       })
