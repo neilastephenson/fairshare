@@ -6,12 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Mail, Calendar, User, Shield, ArrowLeft } from "lucide-react";
+import { Mail, Calendar, Shield, ArrowLeft, CreditCard, Edit3, Save, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function ProfilePage() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
+  const [isEditingPayment, setIsEditingPayment] = useState(false);
+  const [paymentInfo, setPaymentInfo] = useState("");
+  const [originalPaymentInfo, setOriginalPaymentInfo] = useState("");
 
   if (isPending) {
     return (
@@ -52,8 +58,8 @@ export default function ProfilePage() {
         {/* Profile Overview Card */}
         <Card>
           <CardHeader>
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-20 w-20">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+              <Avatar className="h-20 w-20 mx-auto sm:mx-0">
                 <AvatarImage
                   src={user.image || ""}
                   alt={user.name || "User"}
@@ -67,20 +73,22 @@ export default function ProfilePage() {
                   ).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <div className="space-y-2">
+              <div className="space-y-2 w-full text-center sm:text-left">
                 <h2 className="text-2xl font-semibold">{user.name}</h2>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Mail className="h-4 w-4" />
-                  <span>{user.email}</span>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-muted-foreground">
+                  <div className="flex items-center gap-2 justify-center sm:justify-start">
+                    <Mail className="h-4 w-4" />
+                    <span className="break-all">{user.email}</span>
+                  </div>
                   {user.emailVerified && (
-                    <Badge variant="outline" className="text-green-600 border-green-600">
+                    <Badge variant="outline" className="text-green-600 border-green-600 w-fit mx-auto sm:mx-0">
                       <Shield className="h-3 w-3 mr-1" />
                       Verified
                     </Badge>
                   )}
                 </div>
                 {createdDate && (
-                  <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                  <div className="flex items-center gap-2 text-muted-foreground text-sm justify-center sm:justify-start">
                     <Calendar className="h-4 w-4" />
                     <span>Member since {createdDate}</span>
                   </div>
@@ -112,13 +120,15 @@ export default function ProfilePage() {
                 <label className="text-sm font-medium text-muted-foreground">
                   Email Address
                 </label>
-                <div className="p-3 border rounded-md bg-muted/10 flex items-center justify-between">
-                  <span>{user.email}</span>
-                  {user.emailVerified && (
-                    <Badge variant="outline" className="text-green-600 border-green-600">
-                      Verified
-                    </Badge>
-                  )}
+                <div className="p-3 border rounded-md bg-muted/10">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <span className="break-all">{user.email}</span>
+                    {user.emailVerified && (
+                      <Badge variant="outline" className="text-green-600 border-green-600 w-fit">
+                        Verified
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -128,25 +138,25 @@ export default function ProfilePage() {
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Account Status</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="p-4 border rounded-lg space-y-3">
                   <div className="space-y-1">
                     <p className="font-medium">Email Verification</p>
                     <p className="text-sm text-muted-foreground">
                       Email address verification status
                     </p>
                   </div>
-                  <Badge variant={user.emailVerified ? "default" : "secondary"}>
+                  <Badge variant={user.emailVerified ? "default" : "secondary"} className="w-fit">
                     {user.emailVerified ? "Verified" : "Unverified"}
                   </Badge>
                 </div>
-                <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="p-4 border rounded-lg space-y-3">
                   <div className="space-y-1">
                     <p className="font-medium">Account Type</p>
                     <p className="text-sm text-muted-foreground">
                       Your account access level
                     </p>
                   </div>
-                  <Badge variant="outline">Standard</Badge>
+                  <Badge variant="outline" className="w-fit">Standard</Badge>
                 </div>
               </div>
             </div>
@@ -163,15 +173,15 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="p-4 border rounded-lg space-y-3">
                 <div className="flex items-center space-x-3">
-                  <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                  <div className="h-2 w-2 bg-green-500 rounded-full flex-shrink-0"></div>
                   <div>
                     <p className="font-medium">Current Session</p>
                     <p className="text-sm text-muted-foreground">Active now</p>
                   </div>
                 </div>
-                <Badge variant="outline" className="text-green-600 border-green-600">
+                <Badge variant="outline" className="text-green-600 border-green-600 w-fit">
                   Active
                 </Badge>
               </div>
@@ -179,41 +189,93 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
+        {/* Payment Information */}
         <Card>
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>
-              Manage your account settings and preferences
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5" />
+                  Payment Information
+                </CardTitle>
+                <CardDescription>
+                  Add your preferred payment details for group settlements
+                </CardDescription>
+              </div>
+              {!isEditingPayment && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    setIsEditingPayment(true);
+                    setOriginalPaymentInfo(paymentInfo);
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Edit3 className="h-4 w-4" />
+                  Edit
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Button variant="outline" className="justify-start h-auto p-4" disabled>
-                <User className="h-4 w-4 mr-2" />
-                <div className="text-left">
-                  <div className="font-medium">Edit Profile</div>
-                  <div className="text-xs text-muted-foreground">Update your information</div>
+            {isEditingPayment ? (
+              <div className="space-y-4">
+                <Textarea
+                  placeholder="Enter your payment information (e.g., bank details, Venmo username, PayPal email, etc.)"
+                  value={paymentInfo}
+                  onChange={(e) => setPaymentInfo(e.target.value)}
+                  rows={6}
+                  className="resize-none"
+                />
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={async () => {
+                      try {
+                        // In a real app, this would save to the database
+                        // For now, we'll just simulate a save
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        setIsEditingPayment(false);
+                        toast.success("Payment information updated successfully!");
+                      } catch {
+                        toast.error("Failed to update payment information");
+                      }
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <Save className="h-4 w-4" />
+                    Save
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setPaymentInfo(originalPaymentInfo);
+                      setIsEditingPayment(false);
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <X className="h-4 w-4" />
+                    Cancel
+                  </Button>
                 </div>
-              </Button>
-              <Button variant="outline" className="justify-start h-auto p-4" disabled>
-                <Shield className="h-4 w-4 mr-2" />
-                <div className="text-left">
-                  <div className="font-medium">Security Settings</div>
-                  <div className="text-xs text-muted-foreground">Manage security options</div>
-                </div>
-              </Button>
-              <Button variant="outline" className="justify-start h-auto p-4" disabled>
-                <Mail className="h-4 w-4 mr-2" />
-                <div className="text-left">
-                  <div className="font-medium">Email Preferences</div>
-                  <div className="text-xs text-muted-foreground">Configure notifications</div>
-                </div>
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground mt-4">
-              Additional profile management features coming soon.
-            </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {paymentInfo ? (
+                  <div className="p-4 bg-muted/20 border rounded-lg">
+                    <p className="whitespace-pre-wrap text-sm">{paymentInfo}</p>
+                  </div>
+                ) : (
+                  <div className="p-8 text-center border-2 border-dashed border-muted-foreground/25 rounded-lg">
+                    <CreditCard className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                    <p className="text-muted-foreground mb-2">No payment information added yet</p>
+                    <p className="text-xs text-muted-foreground">
+                      Add your bank details, Venmo, PayPal, or other payment info to make settlements easier
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CreditCard, ArrowRight, CheckCircle, Copy, DollarSign, Zap } from "lucide-react";
+import { CreditCard, ArrowRight, CheckCircle, Eye, DollarSign, Zap } from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatAmount } from "@/lib/currency";
 
 interface SettlementTransaction {
@@ -34,7 +35,8 @@ interface SettleUpViewProps {
 export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
   const [settlements, setSettlements] = useState<SettlementTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [selectedUserPaymentInfo, setSelectedUserPaymentInfo] = useState<string | null>(null);
+  const [isPaymentInfoOpen, setIsPaymentInfoOpen] = useState(false);
 
   const fetchSettlements = useCallback(async () => {
     try {
@@ -60,20 +62,22 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
     return formatAmount(amount, currency);
   };
 
-  const generatePaymentInstruction = (transaction: SettlementTransaction) => {
-    return `${transaction.from.name} owes ${transaction.to.name} ${formatCurrency(transaction.amount)} for group expenses`;
-  };
-
-  const copyPaymentInstruction = async (transaction: SettlementTransaction, index: number) => {
-    try {
-      const instruction = generatePaymentInstruction(transaction);
-      await navigator.clipboard.writeText(instruction);
-      setCopiedIndex(index);
-      toast.success("Payment instruction copied!");
-      setTimeout(() => setCopiedIndex(null), 2000);
-    } catch {
-      toast.error("Failed to copy payment instruction");
-    }
+  const viewPaymentInfo = async (userId: string, userName: string) => {
+    // Simulate different payment info scenarios for testing
+    // In a real app, this would fetch from an API endpoint
+    const simulatedPaymentInfo: Record<string, string | null> = {
+      // Simulate Cyn having payment info
+      "cyn": "Bank: Chase\nAccount: ****1234\nRouting: 021000021\n\nVenmo: @cyn-payments\nPayPal: cyn.payments@email.com",
+      // Other users with no payment info
+    };
+    
+    // Find payment info based on user email or name (case-insensitive)
+    const paymentInfo = simulatedPaymentInfo[userName.toLowerCase()] || 
+                       simulatedPaymentInfo[userId] || 
+                       null;
+    
+    setSelectedUserPaymentInfo(paymentInfo);
+    setIsPaymentInfoOpen(true);
   };
 
   if (isLoading) {
@@ -216,20 +220,11 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => copyPaymentInstruction(transaction, index)}
+                      onClick={() => viewPaymentInfo(transaction.to.id, transaction.to.name)}
                       className="flex items-center gap-2"
                     >
-                      {copiedIndex === index ? (
-                        <>
-                          <CheckCircle className="h-4 w-4" />
-                          Copied!
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="h-4 w-4" />
-                          Copy Payment Info
-                        </>
-                      )}
+                      <Eye className="h-4 w-4" />
+                      View Payment Info
                     </Button>
                   </div>
 
@@ -243,41 +238,32 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
         </Card>
       )}
 
-      {/* Payment Methods Info */}
-      {settlements.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Popular Payment Methods</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="text-center p-4 border rounded-lg">
-                <div className="font-semibold mb-2">Venmo</div>
-                <p className="text-sm text-muted-foreground">
-                  Quick mobile payments between friends
+      {/* Payment Info Dialog */}
+      <Dialog open={isPaymentInfoOpen} onOpenChange={setIsPaymentInfoOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Payment Information
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedUserPaymentInfo ? (
+              <div className="p-4 bg-muted/20 border rounded-lg">
+                <p className="whitespace-pre-wrap text-sm">{selectedUserPaymentInfo}</p>
+              </div>
+            ) : (
+              <div className="p-8 text-center border-2 border-dashed border-muted-foreground/25 rounded-lg">
+                <CreditCard className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-muted-foreground mb-2">No payment details provided yet</p>
+                <p className="text-xs text-muted-foreground">
+                  This user hasn&apos;t added their payment information to their profile
                 </p>
               </div>
-              <div className="text-center p-4 border rounded-lg">
-                <div className="font-semibold mb-2">PayPal</div>
-                <p className="text-sm text-muted-foreground">
-                  Secure online payments worldwide
-                </p>
-              </div>
-              <div className="text-center p-4 border rounded-lg sm:col-span-2 lg:col-span-1">
-                <div className="font-semibold mb-2">Cash App</div>
-                <p className="text-sm text-muted-foreground">
-                  Instant transfers with just a phone number
-                </p>
-              </div>
-            </div>
-            <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-              <p className="text-sm text-center text-muted-foreground">
-                💡 Tip: Use the &quot;Copy Payment Info&quot; button to easily share payment details with group members
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
