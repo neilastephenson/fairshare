@@ -165,7 +165,7 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
                 <div key={index}>
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-lg border bg-card space-y-4 sm:space-y-0">
                     {/* From User */}
-                    <div className="flex items-center space-x-3 min-w-0 flex-1">
+                    <div className="flex items-center space-x-4 w-full sm:min-w-0 sm:flex-1">
                       <Avatar className="h-10 w-10 flex-shrink-0">
                         <AvatarImage src={transaction.from.image} />
                         <AvatarFallback>
@@ -174,7 +174,7 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
                       </Avatar>
                       <div className="min-w-0 flex-1">
                         <p className="font-medium truncate">{transaction.from.name}</p>
-                        <p className="text-sm text-muted-foreground truncate">
+                        <p className="text-sm text-muted-foreground break-all overflow-wrap-anywhere">
                           {transaction.from.email}
                         </p>
                       </div>
@@ -194,19 +194,20 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
                     </div>
 
                     {/* To User */}
-                    <div className="flex items-center space-x-3 min-w-0 flex-1 sm:justify-end">
-                      <div className="text-left sm:text-right min-w-0 flex-1 sm:flex-initial order-2 sm:order-1">
-                        <p className="font-medium truncate">{transaction.to.name}</p>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {transaction.to.email}
-                        </p>
-                      </div>
-                      <Avatar className="h-10 w-10 flex-shrink-0 order-1 sm:order-2">
+                    <div className="flex items-center w-full sm:min-w-0 sm:flex-1 sm:justify-end">
+                      {/* Mobile: Same layout as From User, Desktop: Reverse order */}
+                      <Avatar className="h-10 w-10 flex-shrink-0 sm:order-2">
                         <AvatarImage src={transaction.to.image} />
                         <AvatarFallback>
                           {transaction.to.name.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
+                      <div className="min-w-0 flex-1 ml-4 text-left sm:text-right sm:order-1 sm:ml-0 sm:mr-4">
+                        <p className="font-medium truncate">{transaction.to.name}</p>
+                        <p className="text-sm text-muted-foreground break-all overflow-wrap-anywhere">
+                          {transaction.to.email}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
