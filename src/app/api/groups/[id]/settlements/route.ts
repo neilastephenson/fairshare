@@ -10,6 +10,7 @@ interface Balance {
   userName: string;
   userEmail: string;
   userImage?: string;
+  paymentInfo?: string | null;
   netBalance: number;
 }
 
@@ -19,12 +20,14 @@ interface SettlementTransaction {
     name: string;
     email: string;
     image?: string;
+    paymentInfo?: string | null;
   };
   to: {
     id: string;
     name: string;
     email: string;
     image?: string;
+    paymentInfo?: string | null;
   };
   amount: number;
 }
@@ -61,12 +64,14 @@ function calculateOptimalSettlements(balances: Balance[]): SettlementTransaction
           name: debtor.userName,
           email: debtor.userEmail,
           image: debtor.userImage,
+          paymentInfo: debtor.paymentInfo,
         },
         to: {
           id: creditor.userId,
           name: creditor.userName,
           email: creditor.userEmail,
           image: creditor.userImage,
+          paymentInfo: creditor.paymentInfo,
         },
         amount: settlementAmount,
       });
@@ -118,13 +123,14 @@ export async function GET(
       return NextResponse.json({ error: "Not a member of this group" }, { status: 403 });
     }
 
-    // Get all group members
+    // Get all group members with payment info
     const members = await db
       .select({
         userId: user.id,
         userName: user.name,
         userEmail: user.email,
         userImage: user.image,
+        paymentInfo: user.paymentInfo,
       })
       .from(groupMember)
       .leftJoin(user, eq(groupMember.userId, user.id))
@@ -168,6 +174,7 @@ export async function GET(
           userName: member.userName!,
           userEmail: member.userEmail!,
           userImage: member.userImage || undefined,
+          paymentInfo: member.paymentInfo,
           netBalance,
         };
       })

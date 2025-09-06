@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Mail, Calendar, Shield, ArrowLeft, CreditCard, Edit3, Save, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -18,6 +18,57 @@ export default function ProfilePage() {
   const [isEditingPayment, setIsEditingPayment] = useState(false);
   const [paymentInfo, setPaymentInfo] = useState("");
   const [originalPaymentInfo, setOriginalPaymentInfo] = useState("");
+  const [isLoadingPaymentInfo, setIsLoadingPaymentInfo] = useState(true);
+  const [isSavingPaymentInfo, setIsSavingPaymentInfo] = useState(false);
+
+  // Load payment info when component mounts
+  useEffect(() => {
+    const fetchPaymentInfo = async () => {
+      if (!session?.user) return;
+
+      try {
+        const response = await fetch("/api/user/payment-info");
+        if (response.ok) {
+          const data = await response.json();
+          setPaymentInfo(data.paymentInfo || "");
+          setOriginalPaymentInfo(data.paymentInfo || "");
+        }
+      } catch (error) {
+        console.error("Failed to fetch payment info:", error);
+      } finally {
+        setIsLoadingPaymentInfo(false);
+      }
+    };
+
+    fetchPaymentInfo();
+  }, [session?.user]);
+
+  const savePaymentInfo = async () => {
+    setIsSavingPaymentInfo(true);
+    try {
+      const response = await fetch("/api/user/payment-info", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ paymentInfo }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setOriginalPaymentInfo(data.paymentInfo || "");
+        setIsEditingPayment(false);
+        toast.success("Payment information updated successfully!");
+      } else {
+        throw new Error("Failed to update payment information");
+      }
+    } catch (error) {
+      console.error("Error updating payment information:", error);
+      toast.error("Failed to update payment information");
+    } finally {
+      setIsSavingPaymentInfo(false);
+    }
+  };
 
   if (isPending) {
     return (
@@ -219,7 +270,11 @@ export default function ProfilePage() {
             </div>
           </CardHeader>
           <CardContent>
-            {isEditingPayment ? (
+            {isLoadingPaymentInfo ? (
+              <div className="flex items-center justify-center p-8">
+                <div className="text-muted-foreground">Loading payment information...</div>
+              </div>
+            ) : isEditingPayment ? (
               <div className="space-y-4">
                 <Textarea
                   placeholder="Enter your payment information (e.g., bank details, Venmo username, PayPal email, etc.)"
@@ -230,21 +285,12 @@ export default function ProfilePage() {
                 />
                 <div className="flex gap-2">
                   <Button 
-                    onClick={async () => {
-                      try {
-                        // In a real app, this would save to the database
-                        // For now, we'll just simulate a save
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                        setIsEditingPayment(false);
-                        toast.success("Payment information updated successfully!");
-                      } catch {
-                        toast.error("Failed to update payment information");
-                      }
-                    }}
+                    onClick={savePaymentInfo}
+                    disabled={isSavingPaymentInfo}
                     className="flex items-center gap-2"
                   >
                     <Save className="h-4 w-4" />
-                    Save
+                    {isSavingPaymentInfo ? "Saving..." : "Save"}
                   </Button>
                   <Button 
                     variant="outline" 

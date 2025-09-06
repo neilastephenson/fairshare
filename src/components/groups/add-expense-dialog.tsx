@@ -13,7 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-// Removed unused Textarea import
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -36,17 +35,6 @@ interface AddExpenseDialogProps {
   children?: React.ReactNode;
 }
 
-const categories = [
-  "Food & Dining",
-  "Transportation",
-  "Accommodation",
-  "Entertainment",
-  "Shopping",
-  "Utilities",
-  "Healthcare",
-  "Other",
-];
-
 export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, children }: AddExpenseDialogProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,7 +44,6 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
   // Form state
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [paidBy, setPaidBy] = useState("");
   const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
@@ -90,7 +77,6 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
   const resetForm = () => {
     setDescription("");
     setAmount("");
-    setCategory("");
     setDate(new Date().toISOString().split('T')[0]);
     setPaidBy("");
     setSelectedMembers(new Set());
@@ -125,9 +111,15 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
     const memberIds = Array.from(selectedMembers);
     
     if (splitType === "equal") {
-      const splitAmount = totalAmount / memberIds.length;
-      return memberIds.reduce((acc, id) => {
-        acc[id] = splitAmount.toFixed(2);
+      // Calculate base amount per person
+      const baseAmount = Math.floor((totalAmount * 100) / memberIds.length) / 100;
+      const remainder = totalAmount - (baseAmount * memberIds.length);
+      
+      // Distribute the remainder across the first few members to ensure exact total
+      return memberIds.reduce((acc, id, index) => {
+        // Add 0.01 to the first members to distribute the remainder
+        const extraPenny = index < Math.round(remainder * 100) ? 0.01 : 0;
+        acc[id] = (baseAmount + extraPenny).toFixed(2);
         return acc;
       }, {} as Record<string, string>);
     } else {
@@ -167,7 +159,6 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
       const expenseData = {
         description: description.trim(),
         amount: parseFloat(amount),
-        category: category || null,
         date: new Date(date).toISOString(),
         paidBy,
         participants: Array.from(selectedMembers).map(memberId => ({
@@ -253,31 +244,14 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
-              <Input
-                id="date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="date">Date</Label>
+            <Input
+              id="date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
           </div>
 
           {/* Paid By */}

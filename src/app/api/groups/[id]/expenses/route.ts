@@ -10,7 +10,6 @@ import { inArray } from "drizzle-orm";
 const createExpenseSchema = z.object({
   description: z.string().min(1, "Description is required"),
   amount: z.number().positive("Amount must be positive"),
-  category: z.string().nullable().optional(),
   date: z.string().refine((date) => !isNaN(Date.parse(date)), "Invalid date"),
   paidBy: z.string().min(1, "Paid by is required"),
   participants: z.array(z.object({
@@ -191,7 +190,7 @@ export async function POST(
       paidBy: validatedData.paidBy,
       amount: validatedData.amount.toString(),
       description: validatedData.description,
-      category: validatedData.category,
+      category: null,
       date: new Date(validatedData.date),
     }).returning({ id: expense.id });
 
@@ -216,7 +215,6 @@ export async function POST(
       metadata: JSON.stringify({
         description: validatedData.description,
         amount: validatedData.amount,
-        category: validatedData.category,
       }),
     });
 

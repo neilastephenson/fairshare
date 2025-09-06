@@ -18,12 +18,14 @@ interface SettlementTransaction {
     name: string;
     email: string;
     image?: string;
+    paymentInfo?: string | null;
   };
   to: {
     id: string;
     name: string;
     email: string;
     image?: string;
+    paymentInfo?: string | null;
   };
   amount: number;
   settledAt?: string;
@@ -67,21 +69,11 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
     return formatAmount(amount, currency);
   };
 
-  const viewPaymentInfo = async (userId: string, userName: string) => {
-    // Simulate different payment info scenarios for testing
-    // In a real app, this would fetch from an API endpoint
-    const simulatedPaymentInfo: Record<string, string | null> = {
-      // Simulate Cyn having payment info
-      "cyn": "Bank: Chase\nAccount: ****1234\nRouting: 021000021\n\nVenmo: @cyn-payments\nPayPal: cyn.payments@email.com",
-      // Other users with no payment info
-    };
+  const viewPaymentInfo = (transaction: SettlementTransaction) => {
+    // Use the payment info from the transaction data (fetched from the API)
+    const paymentInfo = transaction.to.paymentInfo;
     
-    // Find payment info based on user email or name (case-insensitive)
-    const paymentInfo = simulatedPaymentInfo[userName.toLowerCase()] || 
-                       simulatedPaymentInfo[userId] || 
-                       null;
-    
-    setSelectedUserPaymentInfo(paymentInfo);
+    setSelectedUserPaymentInfo(paymentInfo || null);
     setIsPaymentInfoOpen(true);
   };
 
@@ -302,7 +294,7 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => viewPaymentInfo(transaction.to.id, transaction.to.name)}
+                      onClick={() => viewPaymentInfo(transaction)}
                       className="flex items-center gap-2"
                     >
                       <Eye className="h-4 w-4" />

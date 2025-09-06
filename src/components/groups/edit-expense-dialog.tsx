@@ -25,17 +25,6 @@ import { Loader2, Calculator } from "lucide-react";
 import { toast } from "sonner";
 import { getCurrencySymbol } from "@/lib/currency";
 
-const EXPENSE_CATEGORIES = [
-  "Food & Dining",
-  "Transportation", 
-  "Accommodation",
-  "Entertainment",
-  "Shopping",
-  "Utilities",
-  "Healthcare",
-  "Other"
-];
-
 interface Member {
   id: string;
   name: string;
@@ -47,7 +36,6 @@ interface ExpenseData {
   id: string;
   description: string;
   amount: string;
-  category?: string;
   date: string;
   paidBy: string;
   participants: Array<{
@@ -78,7 +66,6 @@ export function EditExpenseDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState("");
   const [date, setDate] = useState("");
   const [paidBy, setPaidBy] = useState("");
   const [selectedMembers, setSelectedMembers] = useState(new Set<string>());
@@ -90,7 +77,6 @@ export function EditExpenseDialog({
     if (expense) {
       setDescription(expense.description);
       setAmount(expense.amount);
-      setCategory(expense.category || "");
       setDate(new Date(expense.date).toISOString().split('T')[0]);
       setPaidBy(expense.paidBy);
       
@@ -118,10 +104,19 @@ export function EditExpenseDialog({
 
   const calculateSplitAmounts = (): Record<string, string> => {
     if (splitType === "equal") {
-      const amountPerPerson = parseFloat(amount) / selectedMembers.size;
+      const totalAmount = parseFloat(amount);
+      const memberIds = Array.from(selectedMembers);
+      
+      // Calculate base amount per person
+      const baseAmount = Math.floor((totalAmount * 100) / memberIds.length) / 100;
+      const remainder = totalAmount - (baseAmount * memberIds.length);
+      
       const amounts: Record<string, string> = {};
-      selectedMembers.forEach(memberId => {
-        amounts[memberId] = amountPerPerson.toFixed(2);
+      // Distribute the remainder across the first few members to ensure exact total
+      memberIds.forEach((memberId, index) => {
+        // Add 0.01 to the first members to distribute the remainder
+        const extraPenny = index < Math.round(remainder * 100) ? 0.01 : 0;
+        amounts[memberId] = (baseAmount + extraPenny).toFixed(2);
       });
       return amounts;
     }
@@ -189,7 +184,6 @@ export function EditExpenseDialog({
       const expenseData = {
         description: description.trim(),
         amount: parseFloat(amount),
-        category: category || null,
         date: new Date(date).toISOString(),
         paidBy,
         participants: Array.from(selectedMembers).map(memberId => ({
@@ -272,22 +266,6 @@ export function EditExpenseDialog({
                   disabled={isLoading}
                 />
               </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label>Category</Label>
-              <Select value={category} onValueChange={setCategory} disabled={isLoading}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {EXPENSE_CATEGORIES.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="grid gap-2">

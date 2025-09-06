@@ -9,7 +9,6 @@ import { z } from "zod";
 const updateExpenseSchema = z.object({
   description: z.string().min(1, "Description is required"),
   amount: z.number().positive("Amount must be positive"),
-  category: z.string().nullable().optional(),
   date: z.string().refine((date) => !isNaN(Date.parse(date)), "Invalid date"),
   paidBy: z.string().min(1, "Paid by is required"),
   participants: z.array(z.object({
@@ -115,7 +114,7 @@ export async function PUT(
         paidBy: validatedData.paidBy,
         amount: validatedData.amount.toString(),
         description: validatedData.description,
-        category: validatedData.category,
+        category: null,
         date: new Date(validatedData.date),
         updatedAt: new Date(),
       })
@@ -145,7 +144,6 @@ export async function PUT(
       metadata: JSON.stringify({
         description: validatedData.description,
         amount: validatedData.amount,
-        category: validatedData.category,
         previousAmount: parseFloat(existingExpense[0].amount),
         previousDescription: existingExpense[0].description,
       }),

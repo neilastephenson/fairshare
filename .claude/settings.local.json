@@ -25,7 +25,11 @@
       "Bash(find:*)",
       "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_mLCzjLzhBf/**)",
       "Bash(npx drizzle-kit:*)",
-      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_Lp2Xem1l0f/**)"
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_Lp2Xem1l0f/**)",
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_LrXCHTIp4R/**)",
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_arYE5HjEfm/**)",
+      "mcp__playwright__browser_resize",
+      "mcp__playwright__browser_wait_for"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"

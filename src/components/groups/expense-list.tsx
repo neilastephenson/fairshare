@@ -290,7 +290,6 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
             id: editingExpense.id,
             description: editingExpense.description,
             amount: editingExpense.amount,
-            category: editingExpense.category,
             date: editingExpense.date,
             paidBy: editingExpense.paidBy.id,
             participants: editingExpense.participants.map(p => ({
