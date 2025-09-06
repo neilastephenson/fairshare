@@ -114,14 +114,16 @@ export function BalanceView({ groupId, currency = "GBP" }: BalanceViewProps) {
   return (
     <div className="space-y-6">
       {/* Header with Totals */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <DollarSign className="h-5 w-5 text-primary" />
-              <div>
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <DollarSign className="h-5 w-5 text-primary" />
+              </div>
+              <div className="min-w-0">
                 <p className="text-sm text-muted-foreground">Total Expenses</p>
-                <p className="text-xl font-bold">{formatCurrency(groupTotals.totalExpenses)}</p>
+                <p className="text-xl font-bold truncate">{formatCurrency(groupTotals.totalExpenses)}</p>
               </div>
             </div>
           </CardContent>
@@ -129,21 +131,25 @@ export function BalanceView({ groupId, currency = "GBP" }: BalanceViewProps) {
         
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Calculator className="h-5 w-5 text-primary" />
-              <div>
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Calculator className="h-5 w-5 text-primary" />
+              </div>
+              <div className="min-w-0">
                 <p className="text-sm text-muted-foreground">Average per Member</p>
-                <p className="text-xl font-bold">{formatCurrency(groupTotals.averagePerMember)}</p>
+                <p className="text-xl font-bold truncate">{formatCurrency(groupTotals.averagePerMember)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="sm:col-span-2 lg:col-span-1">
           <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Equal className="h-5 w-5 text-primary" />
-              <div>
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Equal className="h-5 w-5 text-primary" />
+              </div>
+              <div className="min-w-0">
                 <p className="text-sm text-muted-foreground">Settlement Status</p>
                 <p className="text-xl font-bold">
                   {balances.every(b => Math.abs(b.netBalance) < 0.01) ? 'All Settled' : 'Pending'}
@@ -178,40 +184,70 @@ export function BalanceView({ groupId, currency = "GBP" }: BalanceViewProps) {
                 
                 return (
                   <div key={balance.userId}>
-                    <div className="flex items-center justify-between py-4">
+                    <div className="py-4 space-y-3">
+                      {/* Top row: Avatar and name */}
                       <div className="flex items-center space-x-3">
-                        <Avatar className="h-12 w-12">
+                        <Avatar className="h-12 w-12 flex-shrink-0">
                           <AvatarImage src={balance.userImage} />
                           <AvatarFallback>
                             {balance.userName.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         
-                        <div>
-                          <h3 className="font-semibold">{balance.userName}</h3>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span>Paid: {formatCurrency(balance.totalPaid)}</span>
-                            <span>•</span>
-                            <span>Owes: {formatCurrency(balance.totalOwed)}</span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold truncate">{balance.userName}</h3>
+                          <p className="text-sm text-muted-foreground truncate">{balance.userEmail}</p>
+                        </div>
+
+                        {/* Desktop: Balance info on right */}
+                        <div className="hidden sm:block text-right">
+                          <div className={`flex items-center gap-2 justify-end ${getBalanceColor(status)}`}>
+                            {getBalanceIcon(status)}
+                            <span className="font-semibold">
+                              {status === 'settled' ? 'Settled' : formatCurrency(balance.netBalance)}
+                            </span>
                           </div>
+                          <Badge
+                            variant={status === 'owed' ? 'default' : status === 'owes' ? 'destructive' : 'secondary'}
+                            className="mt-1"
+                          >
+                            {status === 'owed' && 'Gets back'}
+                            {status === 'owes' && 'Owes'}
+                            {status === 'settled' && 'All settled'}
+                          </Badge>
                         </div>
                       </div>
 
-                      <div className="text-right">
-                        <div className={`flex items-center gap-2 ${getBalanceColor(status)}`}>
-                          {getBalanceIcon(status)}
-                          <span className="font-semibold">
-                            {status === 'settled' ? 'Settled' : formatCurrency(balance.netBalance)}
+                      {/* Second row: Payment details */}
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 ml-15">
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <span className="font-medium">Paid:</span>
+                            <span>{formatCurrency(balance.totalPaid)}</span>
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <span className="font-medium">Owes:</span>
+                            <span>{formatCurrency(balance.totalOwed)}</span>
                           </span>
                         </div>
-                        <Badge
-                          variant={status === 'owed' ? 'default' : status === 'owes' ? 'destructive' : 'secondary'}
-                          className="mt-1"
-                        >
-                          {status === 'owed' && 'Gets back'}
-                          {status === 'owes' && 'Owes'}
-                          {status === 'settled' && 'All settled'}
-                        </Badge>
+
+                        {/* Mobile: Balance info below */}
+                        <div className="sm:hidden">
+                          <div className={`flex items-center gap-2 ${getBalanceColor(status)}`}>
+                            {getBalanceIcon(status)}
+                            <span className="font-semibold">
+                              {status === 'settled' ? 'Settled' : formatCurrency(balance.netBalance)}
+                            </span>
+                          </div>
+                          <Badge
+                            variant={status === 'owed' ? 'default' : status === 'owes' ? 'destructive' : 'secondary'}
+                            className="mt-1 w-fit"
+                          >
+                            {status === 'owed' && 'Gets back'}
+                            {status === 'owes' && 'Owes'}
+                            {status === 'settled' && 'All settled'}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
                     
@@ -230,29 +266,35 @@ export function BalanceView({ groupId, currency = "GBP" }: BalanceViewProps) {
           <CardTitle>Balance Summary</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
-              <TrendingUp className="h-8 w-8 mx-auto text-green-600 dark:text-green-400 mb-2" />
-              <p className="text-sm text-muted-foreground">Members who get back</p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {balances.filter(b => b.netBalance > 0.01).length}
-              </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="flex sm:flex-col items-center sm:text-center p-4 bg-green-50 dark:bg-green-950/20 rounded-lg gap-3">
+              <TrendingUp className="h-8 w-8 text-green-600 dark:text-green-400 flex-shrink-0" />
+              <div className="flex-1 sm:flex-initial">
+                <p className="text-sm text-muted-foreground">Members who get back</p>
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                  {balances.filter(b => b.netBalance > 0.01).length}
+                </p>
+              </div>
             </div>
             
-            <div className="text-center p-4 bg-red-50 dark:bg-red-950/20 rounded-lg">
-              <TrendingDown className="h-8 w-8 mx-auto text-red-600 dark:text-red-400 mb-2" />
-              <p className="text-sm text-muted-foreground">Members who owe</p>
-              <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                {balances.filter(b => b.netBalance < -0.01).length}
-              </p>
+            <div className="flex sm:flex-col items-center sm:text-center p-4 bg-red-50 dark:bg-red-950/20 rounded-lg gap-3">
+              <TrendingDown className="h-8 w-8 text-red-600 dark:text-red-400 flex-shrink-0" />
+              <div className="flex-1 sm:flex-initial">
+                <p className="text-sm text-muted-foreground">Members who owe</p>
+                <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                  {balances.filter(b => b.netBalance < -0.01).length}
+                </p>
+              </div>
             </div>
             
-            <div className="text-center p-4 bg-muted/50 rounded-lg">
-              <Equal className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">Members settled</p>
-              <p className="text-2xl font-bold">
-                {balances.filter(b => Math.abs(b.netBalance) < 0.01).length}
-              </p>
+            <div className="flex sm:flex-col items-center sm:text-center p-4 bg-muted/50 rounded-lg gap-3">
+              <Equal className="h-8 w-8 text-muted-foreground flex-shrink-0" />
+              <div className="flex-1 sm:flex-initial">
+                <p className="text-sm text-muted-foreground">Members settled</p>
+                <p className="text-2xl font-bold">
+                  {balances.filter(b => Math.abs(b.netBalance) < 0.01).length}
+                </p>
+              </div>
             </div>
           </div>
         </CardContent>
