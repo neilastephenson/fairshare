@@ -149,7 +149,7 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Receipt className="h-6 w-6" />
@@ -159,7 +159,9 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
             {expenses.length} expense{expenses.length !== 1 ? 's' : ''} recorded
           </p>
         </div>
-        <AddExpenseDialog groupId={groupId} currency={currency} onExpenseAdded={handleExpenseAdded} />
+        <div className="flex-shrink-0">
+          <AddExpenseDialog groupId={groupId} currency={currency} onExpenseAdded={handleExpenseAdded} />
+        </div>
       </div>
 
       {expenses.length === 0 ? (
@@ -183,9 +185,10 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
           {expenses.map((expense) => (
             <Card key={expense.id}>
               <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-3 flex-1">
-                    <Avatar className="h-10 w-10 mt-1">
+                <div className="space-y-4">
+                  {/* Main expense info */}
+                  <div className="flex items-start space-x-3">
+                    <Avatar className="h-10 w-10 flex-shrink-0">
                       <AvatarImage src={expense.paidBy.image} />
                       <AvatarFallback>
                         {expense.paidBy.name.charAt(0).toUpperCase()}
@@ -193,79 +196,84 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
                     </Avatar>
                     
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold truncate">
-                          {expense.description}
-                        </h3>
-                        {expense.category && (
-                          <Badge variant="secondary" className="text-xs">
-                            {expense.category}
-                          </Badge>
-                        )}
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <h3 className="font-semibold truncate">
+                            {expense.description}
+                          </h3>
+                          {expense.category && (
+                            <Badge variant="secondary" className="text-xs flex-shrink-0">
+                              {expense.category}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="text-lg font-semibold flex-shrink-0">
+                          {formatAmount(expense.amount, currency)}
+                        </div>
                       </div>
                       
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
+                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-sm text-muted-foreground mt-1">
                         <div className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          <span>{expense.paidBy.name}</span>
+                          <User className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">{expense.paidBy.name}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
+                          <Calendar className="h-3 w-3 flex-shrink-0" />
                           <span>{new Date(expense.date).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-
-                      <div className="text-lg font-semibold">
-                        {formatAmount(expense.amount, currency)}
-                      </div>
-
-                      <div className="mt-3">
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Split between {expense.participants.length} member{expense.participants.length !== 1 ? 's' : ''}:
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {expense.participants.map((participant) => (
-                            <div
-                              key={participant.userId}
-                              className="flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded"
-                            >
-                              <Avatar className="h-4 w-4">
-                                <AvatarImage src={participant.user.image} />
-                                <AvatarFallback className="text-xs">
-                                  {participant.user.name.charAt(0).toUpperCase()}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span>{participant.user.name}</span>
-                              <span className="text-muted-foreground">
-                                {formatAmount(participant.shareAmount, currency)}
-                              </span>
-                            </div>
-                          ))}
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  {/* Participants */}
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Split between {expense.participants.length} member{expense.participants.length !== 1 ? 's' : ''}:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {expense.participants.map((participant) => (
+                        <div
+                          key={participant.userId}
+                          className="flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded flex-shrink-0"
+                        >
+                          <Avatar className="h-4 w-4">
+                            <AvatarImage src={participant.user.image} />
+                            <AvatarFallback className="text-xs">
+                              {participant.user.name.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="max-w-[100px] truncate">{participant.user.name}</span>
+                          <span className="text-muted-foreground">
+                            {formatAmount(participant.shareAmount, currency)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Footer with timestamp and actions */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2 border-t">
                     <span className="text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(expense.createdAt), { addSuffix: true })}
                     </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditExpense(expense)}
-                      className="text-muted-foreground hover:text-foreground"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteExpense(expense.id)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditExpense(expense)}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteExpense(expense.id)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>
