@@ -28,6 +28,20 @@ interface Member {
   role: string;
 }
 
+interface PlaceholderUser {
+  id: string;
+  name: string;
+  createdAt: string;
+}
+
+interface Participant {
+  id: string;
+  name: string;
+  email?: string;
+  image?: string;
+  type: "user" | "placeholder";
+}
+
 interface AddExpenseDialogProps {
   groupId: string;
   currency?: string;
@@ -38,7 +52,7 @@ interface AddExpenseDialogProps {
 export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, children }: AddExpenseDialogProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [members, setMembers] = useState<Member[]>([]);
+  const [participants, setParticipants] = useState<Participant[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
 
   // Form state
@@ -50,16 +64,42 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
   const [splitType, setSplitType] = useState<"equal" | "custom">("equal");
   const [customAmounts, setCustomAmounts] = useState<Record<string, string>>({});
 
-  // Fetch group members
+  // Fetch group members and placeholder users
   const fetchMembers = useCallback(async () => {
     setLoadingMembers(true);
     try {
-      const response = await fetch(`/api/groups/${groupId}/members`);
-      if (!response.ok) {
+      const [membersResponse, placeholdersResponse] = await Promise.all([
+        fetch(`/api/groups/${groupId}/members`),
+        fetch(`/api/groups/${groupId}/placeholder-users`),
+      ]);
+      
+      if (!membersResponse.ok) {
         throw new Error("Failed to fetch members");
       }
-      const data = await response.json();
-      setMembers(data.members);
+      if (!placeholdersResponse.ok) {
+        throw new Error("Failed to fetch placeholder users");
+      }
+      
+      const membersData = await membersResponse.json();
+      const placeholdersData = await placeholdersResponse.json();
+      
+      // Combine members and placeholders into participants
+      const allParticipants: Participant[] = [
+        ...membersData.members.map((m: Member) => ({
+          id: m.id,
+          name: m.name,
+          email: m.email,
+          image: m.image,
+          type: "user" as const,
+        })),
+        ...(placeholdersData.placeholderUsers || []).map((p: PlaceholderUser) => ({
+          id: p.id,
+          name: p.name,
+          type: "placeholder" as const,
+        })),
+      ];
+      
+      setParticipants(allParticipants);
     } catch (error) {
       console.error("Error fetching members:", error);
       toast.error("Failed to load group members");
@@ -156,15 +196,24 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
     try {
       const splitAmounts = calculateSplitAmounts();
       
+      // Find if paidBy is a user or placeholder
+      const paidByParticipant = participants.find(p => p.id === paidBy);
+      const paidByType = paidByParticipant?.type || "user";
+      
       const expenseData = {
         description: description.trim(),
         amount: parseFloat(amount),
         date: new Date(date).toISOString(),
         paidBy,
-        participants: Array.from(selectedMembers).map(memberId => ({
-          userId: memberId,
-          shareAmount: parseFloat(splitAmounts[memberId])
-        }))
+        paidByType,
+        participants: Array.from(selectedMembers).map(memberId => {
+          const participant = participants.find(p => p.id === memberId);
+          return {
+            userId: memberId,
+            userType: participant?.type || "user",
+            shareAmount: parseFloat(splitAmounts[memberId])
+          };
+        })
       };
 
       const response = await fetch(`/api/groups/${groupId}/expenses`, {
@@ -268,16 +317,21 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
                   <SelectValue placeholder="Select who paid" />
                 </SelectTrigger>
                 <SelectContent>
-                  {members.map((member) => (
-                    <SelectItem key={member.id} value={member.id}>
+                  {participants.map((participant) => (
+                    <SelectItem key={participant.id} value={participant.id}>
                       <div className="flex items-center space-x-2">
                         <Avatar className="h-5 w-5">
-                          <AvatarImage src={member.image} />
+                          {participant.type === "user" && participant.image && (
+                            <AvatarImage src={participant.image} />
+                          )}
                           <AvatarFallback className="text-xs">
-                            {member.name.charAt(0).toUpperCase()}
+                            {participant.name.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <span>{member.name}</span>
+                        <span>{participant.name}</span>
+                        {participant.type === "placeholder" && (
+                          <span className="text-xs text-muted-foreground">(Placeholder)</span>
+                        )}
                       </div>
                     </SelectItem>
                   ))}
@@ -296,34 +350,39 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
               </div>
             ) : (
               <div className="space-y-2">
-                {members.map((member) => (
+                {participants.map((participant) => (
                   <div
-                    key={member.id}
+                    key={participant.id}
                     className="flex items-center justify-between p-3 border rounded-lg"
                   >
                     <div className="flex items-center space-x-3">
                       <Checkbox
-                        checked={selectedMembers.has(member.id)}
+                        checked={selectedMembers.has(participant.id)}
                         onCheckedChange={(checked) => 
-                          handleMemberToggle(member.id, checked as boolean)
+                          handleMemberToggle(participant.id, checked as boolean)
                         }
                       />
                       <Avatar className="h-6 w-6">
-                        <AvatarImage src={member.image} />
+                        {participant.type === "user" && participant.image && (
+                          <AvatarImage src={participant.image} />
+                        )}
                         <AvatarFallback className="text-xs">
-                          {member.name.charAt(0).toUpperCase()}
+                          {participant.name.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="font-medium">{member.name}</span>
+                      <span className="font-medium">{participant.name}</span>
+                      {participant.type === "placeholder" && (
+                        <span className="text-xs text-muted-foreground ml-1">(Placeholder)</span>
+                      )}
                     </div>
-                    {selectedMembers.has(member.id) && splitType === "custom" && (
+                    {selectedMembers.has(participant.id) && splitType === "custom" && (
                       <Input
                         type="number"
                         step="0.01"
                         min="0"
                         placeholder="0.00"
-                        value={customAmounts[member.id] || ""}
-                        onChange={(e) => handleCustomAmountChange(member.id, e.target.value)}
+                        value={customAmounts[participant.id] || ""}
+                        onChange={(e) => handleCustomAmountChange(participant.id, e.target.value)}
                         className="w-24"
                       />
                     )}

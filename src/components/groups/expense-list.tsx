@@ -23,17 +23,20 @@ interface Expense {
   paidBy: {
     id: string;
     name: string;
-    email: string;
-    image?: string;
+    email: string | null;
+    image?: string | null;
+    isPlaceholder?: boolean;
   };
   participants: Array<{
     userId: string;
+    userType: string;
     shareAmount: string;
     user: {
       id: string;
       name: string;
-      email: string;
-      image?: string;
+      email: string | null;
+      image?: string | null;
+      isPlaceholder?: boolean;
     };
   }>;
 }
@@ -45,6 +48,20 @@ interface Member {
   image?: string;
 }
 
+interface PlaceholderUser {
+  id: string;
+  name: string;
+  createdAt: string;
+}
+
+interface Participant {
+  id: string;
+  name: string;
+  email?: string;
+  image?: string;
+  type: "user" | "placeholder";
+}
+
 interface ExpenseListProps {
   groupId: string;
   currency?: string;
@@ -52,7 +69,7 @@ interface ExpenseListProps {
 
 export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [members, setMembers] = useState<Member[]>([]);
+  const [participants, setParticipants] = useState<Participant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -73,12 +90,38 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
 
   const fetchMembers = useCallback(async () => {
     try {
-      const response = await fetch(`/api/groups/${groupId}/members`);
-      if (!response.ok) {
+      const [membersResponse, placeholdersResponse] = await Promise.all([
+        fetch(`/api/groups/${groupId}/members`),
+        fetch(`/api/groups/${groupId}/placeholder-users`),
+      ]);
+      
+      if (!membersResponse.ok) {
         throw new Error("Failed to fetch members");
       }
-      const data = await response.json();
-      setMembers(data.members);
+      if (!placeholdersResponse.ok) {
+        throw new Error("Failed to fetch placeholder users");
+      }
+      
+      const membersData = await membersResponse.json();
+      const placeholdersData = await placeholdersResponse.json();
+      
+      // Combine members and placeholders into participants
+      const allParticipants: Participant[] = [
+        ...membersData.members.map((m: Member) => ({
+          id: m.id,
+          name: m.name,
+          email: m.email,
+          image: m.image,
+          type: "user" as const,
+        })),
+        ...(placeholdersData.placeholderUsers || []).map((p: PlaceholderUser) => ({
+          id: p.id,
+          name: p.name,
+          type: "placeholder" as const,
+        })),
+      ];
+      
+      setParticipants(allParticipants);
     } catch (error) {
       console.error("Error fetching members:", error);
     }
@@ -189,7 +232,9 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
                   {/* Main expense info */}
                   <div className="flex items-start space-x-3">
                     <Avatar className="h-10 w-10 flex-shrink-0">
-                      <AvatarImage src={expense.paidBy.image} />
+                      {expense.paidBy.image && (
+                        <AvatarImage src={expense.paidBy.image} />
+                      )}
                       <AvatarFallback>
                         {expense.paidBy.name.charAt(0).toUpperCase()}
                       </AvatarFallback>
@@ -237,7 +282,9 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
                           className="flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded flex-shrink-0"
                         >
                           <Avatar className="h-4 w-4">
-                            <AvatarImage src={participant.user.image} />
+                            {participant.user.image && (
+                              <AvatarImage src={participant.user.image} />
+                            )}
                             <AvatarFallback className="text-xs">
                               {participant.user.name.charAt(0).toUpperCase()}
                             </AvatarFallback>
@@ -292,12 +339,14 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
             amount: editingExpense.amount,
             date: editingExpense.date,
             paidBy: editingExpense.paidBy.id,
+            paidByType: editingExpense.paidBy.isPlaceholder ? "placeholder" : "user",
             participants: editingExpense.participants.map(p => ({
               userId: p.userId,
+              userType: p.userType,
               shareAmount: p.shareAmount,
             })),
           }}
-          members={members}
+          participants={participants}
           groupId={groupId}
           currency={currency}
           onExpenseUpdated={handleExpenseUpdated}

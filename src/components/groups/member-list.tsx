@@ -11,9 +11,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Users, MoreHorizontal, Shield, UserMinus, Crown } from "lucide-react";
+import { Users, MoreHorizontal, Shield, UserMinus, Crown, UserCheck, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import { AddPlaceholderDialog } from "./add-placeholder-dialog";
 
 interface Member {
   id: string;
@@ -24,6 +25,15 @@ interface Member {
   joinedAt: string;
 }
 
+interface PlaceholderUser {
+  id: string;
+  name: string;
+  createdAt: string;
+  createdBy: string;
+  claimedBy?: string;
+  claimedAt?: string;
+}
+
 interface MemberListProps {
   groupId: string;
   currentUserId: string;
@@ -32,16 +42,28 @@ interface MemberListProps {
 
 export function MemberList({ groupId, currentUserId, isAdmin }: MemberListProps) {
   const [members, setMembers] = useState<Member[]>([]);
+  const [placeholders, setPlaceholders] = useState<PlaceholderUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchMembers = useCallback(async () => {
     try {
-      const response = await fetch(`/api/groups/${groupId}/members`);
-      if (!response.ok) {
+      const [membersResponse, placeholdersResponse] = await Promise.all([
+        fetch(`/api/groups/${groupId}/members`),
+        fetch(`/api/groups/${groupId}/placeholder-users`),
+      ]);
+      
+      if (!membersResponse.ok) {
         throw new Error("Failed to fetch members");
       }
-      const data = await response.json();
-      setMembers(data.members);
+      if (!placeholdersResponse.ok) {
+        throw new Error("Failed to fetch placeholder users");
+      }
+      
+      const membersData = await membersResponse.json();
+      const placeholdersData = await placeholdersResponse.json();
+      
+      setMembers(membersData.members);
+      setPlaceholders(placeholdersData.placeholderUsers);
     } catch (error) {
       console.error("Error fetching members:", error);
       toast.error("Failed to load members");
@@ -96,6 +118,25 @@ export function MemberList({ groupId, currentUserId, isAdmin }: MemberListProps)
     }
   };
 
+  const removePlaceholder = async (placeholderId: string) => {
+    try {
+      const response = await fetch(`/api/groups/${groupId}/placeholder-users/${placeholderId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to remove placeholder user");
+      }
+
+      toast.success("Placeholder user removed");
+      fetchMembers();
+    } catch (error) {
+      console.error("Error removing placeholder user:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to remove placeholder user");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -128,13 +169,86 @@ export function MemberList({ groupId, currentUserId, isAdmin }: MemberListProps)
             Members
           </h2>
           <p className="text-muted-foreground">
-            {members.length} member{members.length !== 1 ? 's' : ''} in this group
+            {members.length} member{members.length !== 1 ? 's' : ''}
+            {placeholders.length > 0 && ` and ${placeholders.length} placeholder${placeholders.length !== 1 ? 's' : ''}`} in this group
           </p>
         </div>
+        {isAdmin && (
+          <AddPlaceholderDialog
+            groupId={groupId}
+            onPlaceholderAdded={fetchMembers}
+          />
+        )}
       </div>
 
-      {/* Members List */}
+      {/* Members and Placeholders List */}
       <div className="space-y-4">
+        {/* Placeholder Users */}
+        {placeholders.map((placeholder) => (
+          <Card key={`placeholder-${placeholder.id}`} className="border-dashed">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Avatar className="h-12 w-12 bg-muted">
+                    <AvatarFallback className="bg-muted">
+                      {placeholder.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold">{placeholder.name}</h3>
+                      <Badge variant="secondary" className="text-xs">
+                        Placeholder
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Waiting to join the group</p>
+                    {placeholder.claimedBy ? (
+                      <p className="text-xs text-muted-foreground">
+                        Claimed {formatDistanceToNow(new Date(placeholder.claimedAt!), { addSuffix: true })}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        Created {formatDistanceToNow(new Date(placeholder.createdAt), { addSuffix: true })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {placeholder.claimedBy && (
+                    <Badge variant="outline" className="text-xs">
+                      <UserCheck className="h-3 w-3 mr-1" />
+                      Claimed
+                    </Badge>
+                  )}
+
+                  {/* Action Menu (only for admins) */}
+                  {isAdmin && !placeholder.claimedBy && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => removePlaceholder(placeholder.id)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Remove Placeholder
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+
+        {/* Regular Members */}
         {members.map((member) => (
           <Card key={member.id}>
             <CardContent className="p-4">
@@ -212,7 +326,7 @@ export function MemberList({ groupId, currentUserId, isAdmin }: MemberListProps)
         ))}
       </div>
 
-      {members.length === 0 && (
+      {members.length === 0 && placeholders.length === 0 && (
         <Card>
           <CardContent className="p-8 text-center">
             <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />

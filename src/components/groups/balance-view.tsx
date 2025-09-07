@@ -12,8 +12,9 @@ import { formatAmount } from "@/lib/currency";
 interface Balance {
   userId: string;
   userName: string;
-  userEmail: string;
-  userImage?: string;
+  userEmail: string | null;
+  userImage?: string | null;
+  userType?: string;
   totalPaid: number;
   totalOwed: number;
   netBalance: number; // positive = owed money, negative = owes money
@@ -30,6 +31,8 @@ export function BalanceView({ groupId, currency = "GBP" }: BalanceViewProps) {
   const [groupTotals, setGroupTotals] = useState({
     totalExpenses: 0,
     totalMembers: 0,
+    totalPlaceholders: 0,
+    totalParticipants: 0,
     averagePerMember: 0,
   });
 
@@ -188,15 +191,24 @@ export function BalanceView({ groupId, currency = "GBP" }: BalanceViewProps) {
                       {/* Top row: Avatar and name */}
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-12 w-12 flex-shrink-0">
-                          <AvatarImage src={balance.userImage} />
+                          {balance.userImage && (
+                            <AvatarImage src={balance.userImage} />
+                          )}
                           <AvatarFallback>
                             {balance.userName.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold truncate">{balance.userName}</h3>
-                          <p className="text-sm text-muted-foreground truncate">{balance.userEmail}</p>
+                          <h3 className="font-semibold truncate">
+                            {balance.userName}
+                            {balance.userType === 'placeholder' && (
+                              <Badge variant="outline" className="ml-2 text-xs">Placeholder</Badge>
+                            )}
+                          </h3>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {balance.userType === 'placeholder' ? 'Waiting to join' : balance.userEmail}
+                          </p>
                         </div>
 
                         {/* Desktop: Balance info on right */}

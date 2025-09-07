@@ -25,11 +25,12 @@ import { Loader2, Calculator } from "lucide-react";
 import { toast } from "sonner";
 import { getCurrencySymbol } from "@/lib/currency";
 
-interface Member {
+interface Participant {
   id: string;
   name: string;
-  email: string;
+  email?: string;
   image?: string;
+  type: "user" | "placeholder";
 }
 
 interface ExpenseData {
@@ -38,8 +39,10 @@ interface ExpenseData {
   amount: string;
   date: string;
   paidBy: string;
+  paidByType: string;
   participants: Array<{
     userId: string;
+    userType: string;
     shareAmount: string;
   }>;
 }
@@ -48,7 +51,7 @@ interface EditExpenseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   expense: ExpenseData;
-  members: Member[];
+  participants: Participant[];
   groupId: string;
   currency?: string;
   onExpenseUpdated: () => void;
@@ -58,7 +61,7 @@ export function EditExpenseDialog({
   open,
   onOpenChange,
   expense,
-  members,
+  participants,
   groupId,
   currency = "GBP",
   onExpenseUpdated,
@@ -181,15 +184,24 @@ export function EditExpenseDialog({
     try {
       const splitAmounts = calculateSplitAmounts();
       
+      // Find if paidBy is a user or placeholder
+      const paidByParticipant = participants.find(p => p.id === paidBy);
+      const paidByType = paidByParticipant?.type || "user";
+      
       const expenseData = {
         description: description.trim(),
         amount: parseFloat(amount),
         date: new Date(date).toISOString(),
         paidBy,
-        participants: Array.from(selectedMembers).map(memberId => ({
-          userId: memberId,
-          shareAmount: parseFloat(splitAmounts[memberId])
-        }))
+        paidByType,
+        participants: Array.from(selectedMembers).map(memberId => {
+          const participant = participants.find(p => p.id === memberId);
+          return {
+            userId: memberId,
+            userType: participant?.type || "user",
+            shareAmount: parseFloat(splitAmounts[memberId])
+          };
+        })
       };
 
       const response = await fetch(`/api/groups/${groupId}/expenses/${expense.id}`, {
@@ -275,16 +287,21 @@ export function EditExpenseDialog({
                   <SelectValue placeholder="Who paid for this?" />
                 </SelectTrigger>
                 <SelectContent>
-                  {members.map((member) => (
-                    <SelectItem key={member.id} value={member.id}>
+                  {participants.map((participant) => (
+                    <SelectItem key={participant.id} value={participant.id}>
                       <div className="flex items-center gap-2">
                         <Avatar className="w-6 h-6">
-                          <AvatarImage src={member.image} />
+                          {participant.type === "user" && participant.image && (
+                            <AvatarImage src={participant.image} />
+                          )}
                           <AvatarFallback className="text-xs">
-                            {member.name[0]?.toUpperCase()}
+                            {participant.name[0]?.toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        {member.name}
+                        <span>{participant.name}</span>
+                        {participant.type === "placeholder" && (
+                          <span className="text-xs text-muted-foreground">(Placeholder)</span>
+                        )}
                       </div>
                     </SelectItem>
                   ))}
@@ -322,47 +339,51 @@ export function EditExpenseDialog({
               </div>
 
               <div className="space-y-3 max-h-40 overflow-y-auto">
-                {members.map((member) => {
-                  const isSelected = selectedMembers.has(member.id);
+                {participants.map((participant) => {
+                  const isSelected = selectedMembers.has(participant.id);
                   const splitAmounts = calculateSplitAmounts();
                   
                   return (
-                    <div key={member.id} className="flex items-center justify-between p-2 border rounded">
+                    <div key={participant.id} className="flex items-center justify-between p-2 border rounded">
                       <div className="flex items-center space-x-3">
                         <Checkbox
-                          id={`member-${member.id}`}
+                          id={`participant-${participant.id}`}
                           checked={isSelected}
                           onCheckedChange={(checked) => 
-                            handleMemberToggle(member.id, !!checked)
+                            handleMemberToggle(participant.id, !!checked)
                           }
                           disabled={isLoading}
                         />
                         <Avatar className="w-8 h-8">
-                          <AvatarImage src={member.image} />
+                          {participant.type === "user" && participant.image && (
+                            <AvatarImage src={participant.image} />
+                          )}
                           <AvatarFallback>
-                            {member.name[0]?.toUpperCase()}
+                            {participant.name[0]?.toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{member.name}</div>
-                          <div className="text-sm text-muted-foreground">{member.email}</div>
+                          <div className="font-medium">{participant.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {participant.type === "user" ? participant.email : "(Placeholder)"}
+                          </div>
                         </div>
                       </div>
                       {isSelected && (
                         <div className="flex items-center gap-2">
                           {splitType === "equal" ? (
                             <div className="text-sm font-medium">
-                              ${splitAmounts[member.id] || "0.00"}
+                              ${splitAmounts[participant.id] || "0.00"}
                             </div>
                           ) : (
                             <Input
                               type="number"
                               min="0"
                               step="0.01"
-                              value={customAmounts[member.id] || ""}
+                              value={customAmounts[participant.id] || ""}
                               onChange={(e) => setCustomAmounts(prev => ({
                                 ...prev,
-                                [member.id]: e.target.value
+                                [participant.id]: e.target.value
                               }))}
                               className="w-20"
                               placeholder="0.00"

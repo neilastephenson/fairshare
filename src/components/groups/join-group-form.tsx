@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { UserPlus, Loader2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { UserPlus, Loader2, UserCheck, Users } from "lucide-react";
 import { toast } from "sonner";
 
 interface JoinGroupFormProps {
@@ -12,18 +15,51 @@ interface JoinGroupFormProps {
   inviteCode: string;
 }
 
+interface PlaceholderUser {
+  id: string;
+  name: string;
+  createdAt: string;
+}
+
 export function JoinGroupForm({ groupId, groupName, inviteCode }: JoinGroupFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [placeholders, setPlaceholders] = useState<PlaceholderUser[]>([]);
+  const [selectedOption, setSelectedOption] = useState<"new" | string>("new");
+  const [loadingPlaceholders, setLoadingPlaceholders] = useState(true);
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchPlaceholders = async () => {
+      try {
+        const response = await fetch(`/api/invite/${inviteCode}`);
+        if (response.ok) {
+          const data = await response.json();
+          setPlaceholders(data.unclaimedPlaceholders || []);
+        }
+      } catch (error) {
+        console.error("Error fetching placeholders:", error);
+      } finally {
+        setLoadingPlaceholders(false);
+      }
+    };
+
+    fetchPlaceholders();
+  }, [inviteCode]);
 
   const handleJoinGroup = async () => {
     setIsLoading(true);
     try {
+      const body: { placeholderUserId?: string } = {};
+      if (selectedOption !== "new") {
+        body.placeholderUserId = selectedOption;
+      }
+
       const response = await fetch(`/api/invite/${inviteCode}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify(body),
       });
 
       const data = await response.json();
@@ -32,7 +68,12 @@ export function JoinGroupForm({ groupId, groupName, inviteCode }: JoinGroupFormP
         throw new Error(data.error || "Failed to join group");
       }
 
-      toast.success(`Successfully joined ${groupName}!`);
+      if (selectedOption !== "new") {
+        const placeholder = placeholders.find(p => p.id === selectedOption);
+        toast.success(`Successfully joined ${groupName} as ${placeholder?.name}!`);
+      } else {
+        toast.success(`Successfully joined ${groupName}!`);
+      }
       router.push(`/groups/${groupId}`);
     } catch (error) {
       console.error("Error joining group:", error);
@@ -44,9 +85,39 @@ export function JoinGroupForm({ groupId, groupName, inviteCode }: JoinGroupFormP
 
   return (
     <div className="space-y-4">
+      {/* Show placeholder options if available */}
+      {!loadingPlaceholders && placeholders.length > 0 && (
+        <Card>
+          <CardContent className="p-4">
+            <h3 className="font-semibold mb-3">Join as:</h3>
+            <RadioGroup value={selectedOption} onValueChange={setSelectedOption}>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2 p-2 rounded hover:bg-muted/50">
+                  <RadioGroupItem value="new" id="new" />
+                  <Label htmlFor="new" className="flex-1 cursor-pointer flex items-center">
+                    <Users className="h-4 w-4 mr-2" />
+                    Join as myself (new member)
+                  </Label>
+                </div>
+                
+                {placeholders.map((placeholder) => (
+                  <div key={placeholder.id} className="flex items-center space-x-2 p-2 rounded hover:bg-muted/50">
+                    <RadioGroupItem value={placeholder.id} id={placeholder.id} />
+                    <Label htmlFor={placeholder.id} className="flex-1 cursor-pointer flex items-center">
+                      <UserCheck className="h-4 w-4 mr-2" />
+                      Claim &ldquo;{placeholder.name}&rdquo; placeholder
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </RadioGroup>
+          </CardContent>
+        </Card>
+      )}
+
       <Button
         onClick={handleJoinGroup}
-        disabled={isLoading}
+        disabled={isLoading || loadingPlaceholders}
         className="w-full"
         size="lg"
       >

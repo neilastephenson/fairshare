@@ -2,14 +2,15 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { groupMember, expense, expenseParticipant, user } from "@/lib/schema";
+import { groupMember, expense, expenseParticipant, user, placeholderUser } from "@/lib/schema";
 import { eq, and, sum as sqlSum } from "drizzle-orm";
 
 interface Balance {
   userId: string;
   userName: string;
-  userEmail: string;
-  userImage?: string;
+  userEmail: string | null;
+  userImage?: string | null;
+  userType: "user" | "placeholder";
   paymentInfo?: string | null;
   netBalance: number;
 }
@@ -18,15 +19,17 @@ interface SettlementTransaction {
   from: {
     id: string;
     name: string;
-    email: string;
-    image?: string;
+    email: string | null;
+    image?: string | null;
+    type: "user" | "placeholder";
     paymentInfo?: string | null;
   };
   to: {
     id: string;
     name: string;
-    email: string;
-    image?: string;
+    email: string | null;
+    image?: string | null;
+    type: "user" | "placeholder";
     paymentInfo?: string | null;
   };
   amount: number;
@@ -64,6 +67,7 @@ function calculateOptimalSettlements(balances: Balance[]): SettlementTransaction
           name: debtor.userName,
           email: debtor.userEmail,
           image: debtor.userImage,
+          type: debtor.userType,
           paymentInfo: debtor.paymentInfo,
         },
         to: {
@@ -71,6 +75,7 @@ function calculateOptimalSettlements(balances: Balance[]): SettlementTransaction
           name: creditor.userName,
           email: creditor.userEmail,
           image: creditor.userImage,
+          type: creditor.userType,
           paymentInfo: creditor.paymentInfo,
         },
         amount: settlementAmount,
@@ -136,10 +141,35 @@ export async function GET(
       .leftJoin(user, eq(groupMember.userId, user.id))
       .where(eq(groupMember.groupId, groupId));
 
-    // Calculate balances for each member
+    // Get all placeholder users (unclaimed only)
+    const placeholders = await db
+      .select({
+        userId: placeholderUser.id,
+        userName: placeholderUser.name,
+        claimedBy: placeholderUser.claimedBy,
+      })
+      .from(placeholderUser)
+      .where(eq(placeholderUser.groupId, groupId));
+
+    // Combine members and unclaimed placeholders for balance calculations
+    const allParticipants = [
+      ...members.map(m => ({ ...m, userType: 'user' as const })),
+      ...placeholders
+        .filter(p => !p.claimedBy) // Only include unclaimed placeholders
+        .map(p => ({
+          userId: p.userId,
+          userName: p.userName,
+          userEmail: null,
+          userImage: null,
+          paymentInfo: null,
+          userType: 'placeholder' as const,
+        })),
+    ];
+
+    // Calculate balances for each participant
     const balances: Balance[] = await Promise.all(
-      members.map(async (member) => {
-        // Amount this member paid
+      allParticipants.map(async (participant) => {
+        // Amount this participant paid
         const paidResult = await db
           .select({
             total: sqlSum(expense.amount).mapWith((val) => Number(val) || 0),
@@ -147,12 +177,13 @@ export async function GET(
           .from(expense)
           .where(and(
             eq(expense.groupId, groupId),
-            eq(expense.paidBy, member.userId!)
+            eq(expense.paidBy, participant.userId!),
+            eq(expense.paidByType, participant.userType)
           ));
 
         const totalPaid = paidResult[0]?.total || 0;
 
-        // Amount this member owes (their share of all expenses)
+        // Amount this participant owes (their share of all expenses)
         const owedResult = await db
           .select({
             total: sqlSum(expenseParticipant.shareAmount).mapWith((val) => Number(val) || 0),
@@ -161,7 +192,8 @@ export async function GET(
           .leftJoin(expense, eq(expenseParticipant.expenseId, expense.id))
           .where(and(
             eq(expense.groupId, groupId),
-            eq(expenseParticipant.userId, member.userId!)
+            eq(expenseParticipant.userId, participant.userId!),
+            eq(expenseParticipant.userType, participant.userType)
           ));
 
         const totalOwed = owedResult[0]?.total || 0;
@@ -170,11 +202,12 @@ export async function GET(
         const netBalance = totalPaid - totalOwed;
 
         return {
-          userId: member.userId!,
-          userName: member.userName!,
-          userEmail: member.userEmail!,
-          userImage: member.userImage || undefined,
-          paymentInfo: member.paymentInfo,
+          userId: participant.userId!,
+          userName: participant.userName!,
+          userEmail: participant.userEmail!,
+          userImage: participant.userImage || undefined,
+          userType: participant.userType,
+          paymentInfo: participant.paymentInfo || null,
           netBalance,
         };
       })

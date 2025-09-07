@@ -86,14 +86,33 @@ export const groupMember = pgTable("groupMember", {
   };
 });
 
+export const placeholderUser = pgTable("placeholderUser", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  groupId: uuid("groupId")
+    .notNull()
+    .references(() => group.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  createdBy: text("createdBy")
+    .notNull()
+    .references(() => user.id, { onDelete: "restrict" }),
+  claimedBy: text("claimedBy")
+    .references(() => user.id, { onDelete: "set null" }),
+  claimedAt: timestamp("claimedAt"),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+}, (table) => {
+  return {
+    groupIdx: index("placeholder_user_group_idx").on(table.groupId),
+    claimedByIdx: index("placeholder_user_claimed_by_idx").on(table.claimedBy),
+  };
+});
+
 export const expense = pgTable("expense", {
   id: uuid("id").primaryKey().defaultRandom(),
   groupId: uuid("groupId")
     .notNull()
     .references(() => group.id, { onDelete: "cascade" }),
-  paidBy: text("paidBy")
-    .notNull()
-    .references(() => user.id, { onDelete: "restrict" }),
+  paidBy: text("paidBy").notNull(), // Can be user ID or placeholder ID
+  paidByType: text("paidByType").notNull().default("user"), // 'user' or 'placeholder'
   amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
   description: text("description").notNull(),
   category: text("category"),
@@ -112,9 +131,8 @@ export const expenseParticipant = pgTable("expenseParticipant", {
   expenseId: uuid("expenseId")
     .notNull()
     .references(() => expense.id, { onDelete: "cascade" }),
-  userId: text("userId")
-    .notNull()
-    .references(() => user.id, { onDelete: "restrict" }),
+  userId: text("userId").notNull(), // Can be user ID or placeholder ID
+  userType: text("userType").notNull().default("user"), // 'user' or 'placeholder'
   shareAmount: numeric("shareAmount", { precision: 12, scale: 2 }).notNull(),
 }, (table) => {
   return {

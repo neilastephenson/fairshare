@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { groupMember, expense, expenseParticipant, activityLog } from "@/lib/schema";
+import { groupMember, expense, expenseParticipant, activityLog, placeholderUser } from "@/lib/schema";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 
@@ -11,8 +11,10 @@ const updateExpenseSchema = z.object({
   amount: z.number().positive("Amount must be positive"),
   date: z.string().refine((date) => !isNaN(Date.parse(date)), "Invalid date"),
   paidBy: z.string().min(1, "Paid by is required"),
+  paidByType: z.enum(["user", "placeholder"]).default("user"),
   participants: z.array(z.object({
     userId: z.string(),
+    userType: z.enum(["user", "placeholder"]).default("user"),
     shareAmount: z.number().positive("Share amount must be positive")
   })).min(1, "At least one participant is required")
 });
@@ -67,35 +69,70 @@ export async function PUT(
       return NextResponse.json({ error: "Expense not found" }, { status: 404 });
     }
 
-    // Verify the person who paid is a group member
-    const paidByMembership = await db
-      .select()
-      .from(groupMember)
-      .where(and(
-        eq(groupMember.groupId, groupId),
-        eq(groupMember.userId, validatedData.paidBy)
-      ))
-      .limit(1);
+    // Verify the person who paid is either a group member or a placeholder user
+    if (validatedData.paidByType === "user") {
+      const paidByMembership = await db
+        .select()
+        .from(groupMember)
+        .where(and(
+          eq(groupMember.groupId, groupId),
+          eq(groupMember.userId, validatedData.paidBy)
+        ))
+        .limit(1);
 
-    if (paidByMembership.length === 0) {
-      return NextResponse.json({ error: "Person who paid is not a member of this group" }, { status: 400 });
+      if (paidByMembership.length === 0) {
+        return NextResponse.json({ error: "Person who paid is not a member of this group" }, { status: 400 });
+      }
+    } else {
+      const placeholder = await db
+        .select()
+        .from(placeholderUser)
+        .where(and(
+          eq(placeholderUser.id, validatedData.paidBy),
+          eq(placeholderUser.groupId, groupId)
+        ))
+        .limit(1);
+
+      if (placeholder.length === 0) {
+        return NextResponse.json({ error: "Placeholder user not found in this group" }, { status: 400 });
+      }
     }
 
-    // Verify all participants are members of the group
-    const participantIds = validatedData.participants.map(p => p.userId);
-    const participantMemberships = await db
-      .select()
-      .from(groupMember)
-      .where(eq(groupMember.groupId, groupId));
+    // Verify all participants are either members or placeholder users of the group
+    for (const participant of validatedData.participants) {
+      if (participant.userType === "user") {
+        const membership = await db
+          .select()
+          .from(groupMember)
+          .where(and(
+            eq(groupMember.groupId, groupId),
+            eq(groupMember.userId, participant.userId)
+          ))
+          .limit(1);
 
-    const memberIds = participantMemberships.map(m => m.userId);
-    const invalidParticipants = participantIds.filter(id => !memberIds.includes(id));
-    
-    if (invalidParticipants.length > 0) {
-      return NextResponse.json(
-        { error: "Some participants are not members of this group" },
-        { status: 400 }
-      );
+        if (membership.length === 0) {
+          return NextResponse.json(
+            { error: `User ${participant.userId} is not a member of this group` },
+            { status: 400 }
+          );
+        }
+      } else {
+        const placeholder = await db
+          .select()
+          .from(placeholderUser)
+          .where(and(
+            eq(placeholderUser.id, participant.userId),
+            eq(placeholderUser.groupId, groupId)
+          ))
+          .limit(1);
+
+        if (placeholder.length === 0) {
+          return NextResponse.json(
+            { error: `Placeholder user ${participant.userId} not found in this group` },
+            { status: 400 }
+          );
+        }
+      }
     }
 
     // Verify the total of participant shares equals the expense amount
@@ -112,6 +149,7 @@ export async function PUT(
       .update(expense)
       .set({
         paidBy: validatedData.paidBy,
+        paidByType: validatedData.paidByType || "user",
         amount: validatedData.amount.toString(),
         description: validatedData.description,
         category: null,
@@ -130,6 +168,7 @@ export async function PUT(
       validatedData.participants.map(participant => ({
         expenseId,
         userId: participant.userId,
+        userType: participant.userType || "user",
         shareAmount: participant.shareAmount.toString(),
       }))
     );

@@ -16,15 +16,17 @@ interface SettlementTransaction {
   from: {
     id: string;
     name: string;
-    email: string;
-    image?: string;
+    email: string | null;
+    image?: string | null;
+    type?: "user" | "placeholder";
     paymentInfo?: string | null;
   };
   to: {
     id: string;
     name: string;
-    email: string;
-    image?: string;
+    email: string | null;
+    image?: string | null;
+    type?: "user" | "placeholder";
     paymentInfo?: string | null;
   };
   amount: number;
@@ -245,15 +247,22 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
                     {/* From User */}
                     <div className="flex items-center space-x-4 w-full sm:min-w-0 sm:flex-1">
                       <Avatar className="h-10 w-10 flex-shrink-0">
-                        <AvatarImage src={transaction.from.image} />
+                        {transaction.from.image && (
+                          <AvatarImage src={transaction.from.image} />
+                        )}
                         <AvatarFallback>
                           {transaction.from.name.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium truncate">{transaction.from.name}</p>
+                        <p className="font-medium truncate">
+                          {transaction.from.name}
+                          {transaction.from.type === 'placeholder' && (
+                            <Badge variant="outline" className="ml-2 text-xs">Placeholder</Badge>
+                          )}
+                        </p>
                         <p className="text-sm text-muted-foreground break-all overflow-wrap-anywhere">
-                          {transaction.from.email}
+                          {transaction.from.type === 'placeholder' ? 'Waiting to join' : transaction.from.email}
                         </p>
                       </div>
                     </div>
@@ -275,15 +284,22 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
                     <div className="flex items-center w-full sm:min-w-0 sm:flex-1 sm:justify-end">
                       {/* Mobile: Same layout as From User, Desktop: Reverse order */}
                       <Avatar className="h-10 w-10 flex-shrink-0 sm:order-2">
-                        <AvatarImage src={transaction.to.image} />
+                        {transaction.to.image && (
+                          <AvatarImage src={transaction.to.image} />
+                        )}
                         <AvatarFallback>
                           {transaction.to.name.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1 ml-4 text-left sm:text-right sm:order-1 sm:ml-0 sm:mr-4">
-                        <p className="font-medium truncate">{transaction.to.name}</p>
+                        <p className="font-medium truncate">
+                          {transaction.to.name}
+                          {transaction.to.type === 'placeholder' && (
+                            <Badge variant="outline" className="ml-2 text-xs">Placeholder</Badge>
+                          )}
+                        </p>
                         <p className="text-sm text-muted-foreground break-all overflow-wrap-anywhere">
-                          {transaction.to.email}
+                          {transaction.to.type === 'placeholder' ? 'Waiting to join' : transaction.to.email}
                         </p>
                       </div>
                     </div>
@@ -291,15 +307,17 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
 
                   {/* Action Buttons */}
                   <div className="flex justify-center gap-2 mt-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => viewPaymentInfo(transaction)}
-                      className="flex items-center gap-2"
-                    >
-                      <Eye className="h-4 w-4" />
-                      View Payment Info
-                    </Button>
+                    {transaction.to.type !== 'placeholder' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => viewPaymentInfo(transaction)}
+                        className="flex items-center gap-2"
+                      >
+                        <Eye className="h-4 w-4" />
+                        View Payment Info
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       onClick={() => markAsPaid(transaction, index)}
@@ -350,15 +368,22 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
                     {/* From User */}
                     <div className="flex items-center space-x-4 w-full sm:min-w-0 sm:flex-1">
                       <Avatar className="h-10 w-10 flex-shrink-0">
-                        <AvatarImage src={transaction.from.image} />
+                        {transaction.from.image && (
+                          <AvatarImage src={transaction.from.image} />
+                        )}
                         <AvatarFallback>
                           {transaction.from.name.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium truncate">{transaction.from.name}</p>
+                        <p className="font-medium truncate">
+                          {transaction.from.name}
+                          {transaction.from.type === 'placeholder' && (
+                            <Badge variant="outline" className="ml-2 text-xs">Placeholder</Badge>
+                          )}
+                        </p>
                         <p className="text-sm text-muted-foreground break-all overflow-wrap-anywhere">
-                          {transaction.from.email}
+                          {transaction.from.type === 'placeholder' ? 'Waiting to join' : transaction.from.email}
                         </p>
                       </div>
                     </div>
@@ -379,15 +404,22 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
                     {/* To User */}
                     <div className="flex items-center w-full sm:min-w-0 sm:flex-1 sm:justify-end">
                       <Avatar className="h-10 w-10 flex-shrink-0 sm:order-2">
-                        <AvatarImage src={transaction.to.image} />
+                        {transaction.to.image && (
+                          <AvatarImage src={transaction.to.image} />
+                        )}
                         <AvatarFallback>
                           {transaction.to.name.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1 ml-4 text-left sm:text-right sm:order-1 sm:ml-0 sm:mr-4">
-                        <p className="font-medium truncate">{transaction.to.name}</p>
+                        <p className="font-medium truncate">
+                          {transaction.to.name}
+                          {transaction.to.type === 'placeholder' && (
+                            <Badge variant="outline" className="ml-2 text-xs">Placeholder</Badge>
+                          )}
+                        </p>
                         <p className="text-sm text-muted-foreground break-all overflow-wrap-anywhere">
-                          {transaction.to.email}
+                          {transaction.to.type === 'placeholder' ? 'Waiting to join' : transaction.to.email}
                         </p>
                       </div>
                     </div>
