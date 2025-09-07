@@ -338,7 +338,7 @@ export function EditExpenseDialog({
                 </div>
               </div>
 
-              <div className="space-y-3 max-h-40 overflow-y-auto">
+              <div className="space-y-3">
                 {participants.map((participant) => {
                   const isSelected = selectedMembers.has(participant.id);
                   const splitAmounts = calculateSplitAmounts();

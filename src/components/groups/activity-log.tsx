@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import { formatAmount } from "@/lib/currency";
 
 interface ActivityItem {
   id: string;
@@ -36,6 +37,7 @@ interface ActivityItem {
 
 interface ActivityLogProps {
   groupId: string;
+  currency?: string;
 }
 
 const getActivityIcon = (action: string) => {
@@ -57,7 +59,7 @@ const getActivityIcon = (action: string) => {
   }
 };
 
-const getActivityMessage = (activity: ActivityItem) => {
+const getActivityMessage = (activity: ActivityItem, currency: string = "GBP") => {
   let metadata;
   try {
     metadata = activity.metadata ? JSON.parse(activity.metadata) : {};
@@ -67,7 +69,7 @@ const getActivityMessage = (activity: ActivityItem) => {
 
   switch (activity.action) {
     case 'expense_added':
-      return `added expense "${metadata.description || 'Unknown'}" for ${metadata.amount ? `$${metadata.amount}` : 'unknown amount'}`;
+      return `added expense "${metadata.description || 'Unknown'}" for ${metadata.amount ? formatAmount(parseFloat(metadata.amount), currency) : 'unknown amount'}`;
     case 'expense_edited':
       return `edited expense "${metadata.description || 'Unknown'}"`;
     case 'expense_deleted':
@@ -99,7 +101,7 @@ const getActivityColor = (action: string) => {
   }
 };
 
-export function ActivityLog({ groupId }: ActivityLogProps) {
+export function ActivityLog({ groupId, currency = "GBP" }: ActivityLogProps) {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -249,7 +251,7 @@ export function ActivityLog({ groupId }: ActivityLogProps) {
                                 <p className="text-sm">
                                   <span className="font-medium">{activity.user.name}</span>
                                   <span className="text-muted-foreground ml-1">
-                                    {getActivityMessage(activity)}
+                                    {getActivityMessage(activity, currency)}
                                   </span>
                                 </p>
                               </div>

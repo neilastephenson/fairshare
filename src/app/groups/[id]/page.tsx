@@ -166,7 +166,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
           </TabsContent>
 
           <TabsContent value="activity" className="mt-6">
-            <ActivityLog groupId={groupId} />
+            <ActivityLog groupId={groupId} currency={groupInfo.group.currency} />
           </TabsContent>
         </Tabs>
       </div>
