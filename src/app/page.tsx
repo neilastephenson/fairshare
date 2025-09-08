@@ -6,10 +6,7 @@ import {
   Users, 
   Calculator, 
   Receipt, 
-  TrendingDown,
   Clock,
-  Shield,
-  Smartphone,
   ArrowRight
 } from "lucide-react";
 import { useSession, signIn } from "@/lib/auth-client";
@@ -24,11 +21,11 @@ export default function Home() {
         <div className="max-w-3xl mx-auto space-y-6">
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
             Split Expenses,{" "}
-            <span className="text-primary">Not Friendships</span>
+            <span className="text-primary">Stay Friends</span>
           </h1>
           <p className="text-xl text-muted-foreground">
-            Track shared expenses, calculate balances, and settle up with minimal transactions. 
-            Perfect for trips, roommates, and group activities.
+            Track group expenses, manage member balances, and settle up efficiently. 
+            Simple expense sharing for trips, roommates, and group activities.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             {session ? (
@@ -64,9 +61,9 @@ export default function Home() {
       {/* Features Grid */}
       <section className="container mx-auto px-4 py-16 border-t">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Everything You Need</h2>
+          <h2 className="text-3xl font-bold mb-4">Simple Expense Sharing</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            FayrShare makes group expense tracking simple and transparent
+            Everything you need to track and split group expenses
           </p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -76,7 +73,7 @@ export default function Home() {
             </div>
             <h3 className="font-semibold text-lg">Group Management</h3>
             <p className="text-sm text-muted-foreground">
-              Create groups and invite friends with a simple link. No complex setup required.
+              Create groups, invite members with a link, and manage admin roles easily.
             </p>
           </div>
           <div className="p-6 border rounded-lg space-y-3">
@@ -85,16 +82,16 @@ export default function Home() {
             </div>
             <h3 className="font-semibold text-lg">Expense Tracking</h3>
             <p className="text-sm text-muted-foreground">
-              Log expenses, select participants, and let us calculate who owes what automatically.
+              Add expenses, choose who participated, and track balances automatically.
             </p>
           </div>
           <div className="p-6 border rounded-lg space-y-3">
             <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
               <Calculator className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="font-semibold text-lg">Smart Settlements</h3>
+            <h3 className="font-semibold text-lg">Balance Overview</h3>
             <p className="text-sm text-muted-foreground">
-              Minimize transactions with our optimized settlement algorithm. Settle up efficiently.
+              See who owes what at a glance with clear balance summaries for each member.
             </p>
           </div>
           <div className="p-6 border rounded-lg space-y-3">
@@ -103,7 +100,7 @@ export default function Home() {
             </div>
             <h3 className="font-semibold text-lg">Activity History</h3>
             <p className="text-sm text-muted-foreground">
-              Full transparency with a complete log of all expenses and changes in your group.
+              Complete log of all group expenses, edits, and member activity.
             </p>
           </div>
         </div>
@@ -125,7 +122,7 @@ export default function Home() {
             <div className="space-y-2">
               <h3 className="font-semibold text-lg">Create a Group</h3>
               <p className="text-muted-foreground">
-                Sign up and create a group for your trip, household, or any shared activity.
+                Sign up with Google and create a group for your trip, household, or shared activity.
               </p>
             </div>
           </div>
@@ -134,9 +131,9 @@ export default function Home() {
               2
             </div>
             <div className="space-y-2">
-              <h3 className="font-semibold text-lg">Invite Friends</h3>
+              <h3 className="font-semibold text-lg">Add Members</h3>
               <p className="text-muted-foreground">
-                Share the unique invite link. Friends can join instantly after signing up.
+                Share the invite link or add placeholder users for people who haven&apos;t joined yet.
               </p>
             </div>
           </div>
@@ -156,86 +153,15 @@ export default function Home() {
               4
             </div>
             <div className="space-y-2">
-              <h3 className="font-semibold text-lg">Settle Up</h3>
+              <h3 className="font-semibold text-lg">View Balances</h3>
               <p className="text-muted-foreground">
-                View optimized settlement plans showing the minimum transactions needed.
+                Check who owes what and settle up based on the balance overview.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Benefits */}
-      <section className="container mx-auto px-4 py-16 border-t">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6">
-            <h2 className="text-3xl font-bold">Why Choose FayrShare?</h2>
-            <div className="space-y-4">
-              <div className="flex gap-3">
-                <Smartphone className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                <div>
-                  <h3 className="font-semibold mb-1">Mobile-First Design</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Optimized for smartphones so you can add expenses on the go.
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <TrendingDown className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                <div>
-                  <h3 className="font-semibold mb-1">Minimize Transactions</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Our algorithm finds the simplest way for everyone to settle up.
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <Shield className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                <div>
-                  <h3 className="font-semibold mb-1">Secure & Private</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Your data is protected and only visible to your group members.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="bg-muted rounded-lg p-8 text-center">
-            <div className="text-5xl font-bold text-primary mb-2">100%</div>
-            <div className="text-xl font-semibold mb-4">Free to Use</div>
-            <p className="text-muted-foreground">
-              No hidden fees, no premium tiers. FayrShare is completely free for all users.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="bg-primary rounded-2xl p-8 md:p-12 text-center text-primary-foreground">
-          <h2 className="text-3xl font-bold mb-4">
-            Ready to Simplify Group Expenses?
-          </h2>
-          <p className="text-lg mb-6 opacity-90 max-w-2xl mx-auto">
-            Join thousands of groups already using FayrShare to track and settle shared expenses.
-          </p>
-          {!session && (
-            <Button 
-              size="lg" 
-              variant="secondary"
-              onClick={() => {
-                signIn.social({
-                  provider: "google",
-                  callbackURL: "/groups",
-                });
-              }}
-            >
-              Start for Free
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </section>
     </main>
   );
 }

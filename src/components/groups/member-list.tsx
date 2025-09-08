@@ -278,16 +278,20 @@ export function MemberList({ groupId, currentUserId, isAdmin }: MemberListProps)
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <Badge variant={member.role === 'admin' ? 'default' : 'secondary'}>
-                    {member.role === 'admin' ? (
-                      <>
+                  {/* Show crown icon only on mobile for admin, full badge on desktop */}
+                  {member.role === 'admin' && (
+                    <>
+                      {/* Mobile: Just crown icon */}
+                      <div className="md:hidden">
+                        <Crown className="h-4 w-4 text-primary" />
+                      </div>
+                      {/* Desktop: Full badge */}
+                      <Badge variant="default" className="hidden md:flex">
                         <Crown className="h-3 w-3 mr-1" />
                         Admin
-                      </>
-                    ) : (
-                      'Member'
-                    )}
-                  </Badge>
+                      </Badge>
+                    </>
+                  )}
 
                   {/* Action Menu (only for admins, not for current user) */}
                   {isAdmin && member.id !== currentUserId && (

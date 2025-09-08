@@ -1,15 +1,20 @@
+"use client";
+
 import Link from "next/link";
 import { UserProfile } from "@/components/auth/user-profile";
 import { ModeToggle } from "./ui/mode-toggle";
 import { Receipt } from "lucide-react";
+import { useSession } from "@/lib/auth-client";
 
 export function SiteHeader() {
+  const { data: session } = useSession();
+  
   return (
     <header className="border-b">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center min-w-0">
         <h1 className="text-xl sm:text-2xl font-bold min-w-0 flex-shrink-0">
           <Link
-            href="/"
+            href={session ? "/groups" : "/"}
             className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
           >
             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 flex-shrink-0">
