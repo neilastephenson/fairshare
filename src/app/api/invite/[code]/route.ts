@@ -117,7 +117,7 @@ export async function POST(
         await tx.insert(activityLog).values({
           groupId: groupRecord.id,
           userId: session.user.id,
-          action: "member_joined_claimed",
+          action: "member_joined",
           entityType: "member",
           entityId: session.user.id,
           metadata: JSON.stringify({

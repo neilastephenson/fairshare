@@ -49,6 +49,7 @@ const getActivityIcon = (action: string) => {
     case 'expense_deleted':
       return <Trash2 className="h-4 w-4 text-red-600" />;
     case 'member_joined':
+    case 'member_joined_claimed':
       return <UserPlus className="h-4 w-4 text-green-600" />;
     case 'member_left':
       return <UserMinus className="h-4 w-4 text-red-600" />;
@@ -78,6 +79,7 @@ const getActivityMessage = (activity: ActivityItem, currency: string = "GBP") =>
     case 'expense_deleted':
       return `deleted expense "${metadata.description || 'Unknown'}"`;
     case 'member_joined':
+    case 'member_joined_claimed':
       return `joined the group`;
     case 'member_left':
       return `left the group`;
@@ -96,6 +98,7 @@ const getActivityColor = (action: string) => {
   switch (action) {
     case 'expense_added':
     case 'member_joined':
+    case 'member_joined_claimed':
     case 'group_created':
     case 'settlement_paid':
     case 'expense_settled':
@@ -121,10 +124,12 @@ export function ActivityLog({ groupId, currency = "GBP" }: ActivityLogProps) {
         throw new Error("Failed to fetch activities");
       }
       const data = await response.json();
-      // Filter out group_updated activities
+      // Filter out group_updated activities and placeholder-related activities
       const filteredActivities = data.activities.filter((activity: ActivityItem) => 
         activity.action !== 'group_updated' && 
-        activity.action !== 'group_edited'
+        activity.action !== 'group_edited' &&
+        activity.action !== 'placeholder_created' &&
+        activity.action !== 'placeholder_deleted'
       );
       setActivities(filteredActivities);
     } catch (error) {

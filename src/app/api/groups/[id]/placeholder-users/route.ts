@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { placeholderUser, groupMember, activityLog } from "@/lib/schema";
+import { placeholderUser, groupMember } from "@/lib/schema";
 import { eq, and } from "drizzle-orm";
 
 // GET /api/groups/[id]/placeholder-users - Get all placeholder users in a group
@@ -122,19 +122,7 @@ export async function POST(
       })
       .returning();
 
-    // Log activity
-    await db.insert(activityLog).values({
-      groupId,
-      userId: session.user.id,
-      action: "placeholder_created",
-      entityType: "placeholder",
-      entityId: newPlaceholder.id,
-      metadata: JSON.stringify({
-        placeholderName: newPlaceholder.name,
-        createdBy: session.user.name,
-      }),
-      createdAt: new Date(),
-    });
+    // Note: We don't log activity for placeholder creation to avoid cluttering the activity log
 
     return NextResponse.json({ placeholderUser: newPlaceholder });
   } catch (error) {
@@ -203,19 +191,7 @@ export async function DELETE(
       .delete(placeholderUser)
       .where(eq(placeholderUser.id, placeholderId));
 
-    // Log activity
-    await db.insert(activityLog).values({
-      groupId,
-      userId: session.user.id,
-      action: "placeholder_deleted",
-      entityType: "placeholder",
-      entityId: placeholderId,
-      metadata: JSON.stringify({
-        placeholderName: placeholder[0].name,
-        deletedBy: session.user.name,
-      }),
-      createdAt: new Date(),
-    });
+    // Note: We don't log activity for placeholder deletion to avoid cluttering the activity log
 
     return NextResponse.json({ success: true });
   } catch (error) {
