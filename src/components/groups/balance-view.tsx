@@ -116,53 +116,6 @@ export function BalanceView({ groupId, currency = "GBP" }: BalanceViewProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header with Totals */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <DollarSign className="h-5 w-5 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm text-muted-foreground">Total Expenses</p>
-                <p className="text-xl font-bold truncate">{formatCurrency(groupTotals.totalExpenses)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Calculator className="h-5 w-5 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm text-muted-foreground">Average per Member</p>
-                <p className="text-xl font-bold truncate">{formatCurrency(groupTotals.averagePerMember)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="sm:col-span-2 lg:col-span-1">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Equal className="h-5 w-5 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm text-muted-foreground">Settlement Status</p>
-                <p className="text-xl font-bold">
-                  {balances.every(b => Math.abs(b.netBalance) < 0.01) ? 'All Settled' : 'Pending'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Individual Balances */}
       <Card>
         <CardHeader>
@@ -203,7 +156,7 @@ export function BalanceView({ groupId, currency = "GBP" }: BalanceViewProps) {
                           <h3 className="font-semibold truncate">
                             {balance.userName}
                             {balance.userType === 'placeholder' && (
-                              <Badge variant="outline" className="ml-2 text-xs">Placeholder</Badge>
+                              <Badge variant="outline" className="ml-2 text-xs">Pending</Badge>
                             )}
                           </h3>
                           <p className="text-sm text-muted-foreground truncate">
@@ -271,6 +224,53 @@ export function BalanceView({ groupId, currency = "GBP" }: BalanceViewProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Header with Totals */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <DollarSign className="h-5 w-5 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm text-muted-foreground">Total Expenses</p>
+                <p className="text-xl font-bold truncate">{formatCurrency(groupTotals.totalExpenses)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Calculator className="h-5 w-5 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm text-muted-foreground">Average per Member</p>
+                <p className="text-xl font-bold truncate">{formatCurrency(groupTotals.averagePerMember)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="sm:col-span-2 lg:col-span-1">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Equal className="h-5 w-5 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm text-muted-foreground">Settlement Status</p>
+                <p className="text-xl font-bold">
+                  {balances.every(b => Math.abs(b.netBalance) < 0.01) ? 'All Settled' : 'Pending'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Balance Summary */}
       <Card>

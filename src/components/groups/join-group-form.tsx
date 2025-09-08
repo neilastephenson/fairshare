@@ -89,9 +89,9 @@ export function JoinGroupForm({ groupId, groupName, inviteCode }: JoinGroupFormP
       {!loadingPlaceholders && placeholders.length > 0 && (
         <Card>
           <CardContent className="p-4">
-            <h3 className="font-semibold mb-1">Are you one of these members?</h3>
+            <h3 className="font-semibold mb-1">Are you one of these people?</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Select your name if you&apos;re already part of this group
+              An admin has pre-added the following people to this group. If one of these is you, click on your name to automatically claim your space.
             </p>
             <RadioGroup value={selectedOption} onValueChange={setSelectedOption}>
               <div className="space-y-2">
@@ -110,7 +110,7 @@ export function JoinGroupForm({ groupId, groupName, inviteCode }: JoinGroupFormP
                     <RadioGroupItem value="new" id="new" />
                     <Label htmlFor="new" className="flex-1 cursor-pointer flex items-center">
                       <UserPlus className="h-4 w-4 mr-2" />
-                      <span>None of these are me, join as new member</span>
+                      <span>None of these are me, continue</span>
                     </Label>
                   </div>
                 </div>

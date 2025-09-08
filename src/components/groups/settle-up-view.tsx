@@ -258,7 +258,7 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
                         <p className="font-medium truncate">
                           {transaction.from.name}
                           {transaction.from.type === 'placeholder' && (
-                            <Badge variant="outline" className="ml-2 text-xs">Placeholder</Badge>
+                            <Badge variant="outline" className="ml-2 text-xs">Pending</Badge>
                           )}
                         </p>
                         <p className="text-sm text-muted-foreground break-all overflow-wrap-anywhere">
@@ -295,7 +295,7 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
                         <p className="font-medium truncate">
                           {transaction.to.name}
                           {transaction.to.type === 'placeholder' && (
-                            <Badge variant="outline" className="ml-2 text-xs">Placeholder</Badge>
+                            <Badge variant="outline" className="ml-2 text-xs">Pending</Badge>
                           )}
                         </p>
                         <p className="text-sm text-muted-foreground break-all overflow-wrap-anywhere">
@@ -379,7 +379,7 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
                         <p className="font-medium truncate">
                           {transaction.from.name}
                           {transaction.from.type === 'placeholder' && (
-                            <Badge variant="outline" className="ml-2 text-xs">Placeholder</Badge>
+                            <Badge variant="outline" className="ml-2 text-xs">Pending</Badge>
                           )}
                         </p>
                         <p className="text-sm text-muted-foreground break-all overflow-wrap-anywhere">
@@ -415,7 +415,7 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
                         <p className="font-medium truncate">
                           {transaction.to.name}
                           {transaction.to.type === 'placeholder' && (
-                            <Badge variant="outline" className="ml-2 text-xs">Placeholder</Badge>
+                            <Badge variant="outline" className="ml-2 text-xs">Pending</Badge>
                           )}
                         </p>
                         <p className="text-sm text-muted-foreground break-all overflow-wrap-anywhere">

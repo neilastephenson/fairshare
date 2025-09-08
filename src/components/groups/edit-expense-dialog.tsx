@@ -300,7 +300,7 @@ export function EditExpenseDialog({
                         </Avatar>
                         <span>{participant.name}</span>
                         {participant.type === "placeholder" && (
-                          <span className="text-xs text-muted-foreground">(Placeholder)</span>
+                          <span className="text-xs text-muted-foreground">(Pending)</span>
                         )}
                       </div>
                     </SelectItem>
@@ -365,7 +365,7 @@ export function EditExpenseDialog({
                         <div>
                           <div className="font-medium">{participant.name}</div>
                           <div className="text-sm text-muted-foreground">
-                            {participant.type === "user" ? participant.email : "(Placeholder)"}
+                            {participant.type === "user" ? participant.email : "(Pending)"}
                           </div>
                         </div>
                       </div>
@@ -373,7 +373,7 @@ export function EditExpenseDialog({
                         <div className="flex items-center gap-2">
                           {splitType === "equal" ? (
                             <div className="text-sm font-medium">
-                              ${splitAmounts[participant.id] || "0.00"}
+                              {getCurrencySymbol(currency)}{splitAmounts[participant.id] || "0.00"}
                             </div>
                           ) : (
                             <Input

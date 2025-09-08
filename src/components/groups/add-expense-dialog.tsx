@@ -336,7 +336,7 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
                         </Avatar>
                         <span>{participant.name}</span>
                         {participant.type === "placeholder" && (
-                          <span className="text-xs text-muted-foreground">(Placeholder)</span>
+                          <span className="text-xs text-muted-foreground">(Pending)</span>
                         )}
                       </div>
                     </SelectItem>
@@ -378,7 +378,7 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
                       </Avatar>
                       <span className="font-medium">{participant.name}</span>
                       {participant.type === "placeholder" && (
-                        <span className="text-xs text-muted-foreground ml-1">(Placeholder)</span>
+                        <span className="text-xs text-muted-foreground ml-1">(Pending)</span>
                       )}
                     </div>
                     {selectedMembers.has(participant.id) && splitType === "custom" && (
@@ -424,16 +424,16 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
 
               {splitType === "equal" && amount && selectedMembers.size > 0 && (
                 <div className="text-sm text-muted-foreground p-3 bg-muted rounded-lg">
-                  Each person pays: ${(parseFloat(amount) / selectedMembers.size).toFixed(2)}
+                  Each person pays: {getCurrencySymbol(currency)}{(parseFloat(amount) / selectedMembers.size).toFixed(2)}
                 </div>
               )}
 
               {splitType === "custom" && amount && (
                 <div className="text-sm p-3 bg-muted rounded-lg">
                   <div className="flex justify-between">
-                    <span>Total: ${parseFloat(amount).toFixed(2)}</span>
+                    <span>Total: {getCurrencySymbol(currency)}{parseFloat(amount).toFixed(2)}</span>
                     <span className={getCustomTotal() === parseFloat(amount) ? "text-green-600" : "text-red-600"}>
-                      Custom Total: ${getCustomTotal().toFixed(2)}
+                      Custom Total: {getCurrencySymbol(currency)}{getCustomTotal().toFixed(2)}
                     </span>
                   </div>
                 </div>
