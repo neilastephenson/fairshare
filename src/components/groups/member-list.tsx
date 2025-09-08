@@ -162,15 +162,23 @@ export function MemberList({ groupId, currentUserId, isAdmin }: MemberListProps)
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Users className="h-6 w-6" />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+            <Users className="h-5 w-5 sm:h-6 sm:w-6" />
             Members
           </h2>
-          <p className="text-muted-foreground">
-            {members.length} member{members.length !== 1 ? 's' : ''}
-            {placeholders.filter(p => !p.claimedBy).length > 0 && ` and ${placeholders.filter(p => !p.claimedBy).length} placeholder${placeholders.filter(p => !p.claimedBy).length !== 1 ? 's' : ''}`} in this group
+          <p className="text-sm sm:text-base text-muted-foreground">
+            {(() => {
+              const totalMembers = members.length + placeholders.filter(p => !p.claimedBy).length;
+              const pendingCount = placeholders.filter(p => !p.claimedBy).length;
+              
+              if (pendingCount > 0) {
+                return `${totalMembers} member${totalMembers !== 1 ? 's' : ''} (${pendingCount} pending) in this group`;
+              }
+              return `${totalMembers} member${totalMembers !== 1 ? 's' : ''} in this group`;
+            })()
+            }
           </p>
         </div>
         {isAdmin && (
@@ -199,7 +207,7 @@ export function MemberList({ groupId, currentUserId, isAdmin }: MemberListProps)
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-semibold">{placeholder.name}</h3>
                       <Badge variant="secondary" className="text-xs">
-                        Placeholder
+                        Pending
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">Waiting to join the group</p>
@@ -237,7 +245,7 @@ export function MemberList({ groupId, currentUserId, isAdmin }: MemberListProps)
                           className="text-destructive focus:text-destructive"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
-                          Remove Placeholder
+                          Remove Member
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

@@ -72,17 +72,20 @@ export function AddPlaceholderDialog({ groupId, onPlaceholderAdded, children }: 
         {children || (
           <Button variant="outline" size="sm">
             <UserPlus className="h-4 w-4 mr-2" />
-            Add Placeholder
+            Add New Member
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Add Placeholder User</DialogTitle>
+            <DialogTitle>Add New Member</DialogTitle>
             <DialogDescription>
-              Create a placeholder for someone who hasn&apos;t joined the group yet. 
-              They can claim this placeholder when they join.
+              Add a member who hasn&apos;t joined the group yet, so you can start sharing expenses with them straight away.
+              <br /><br />
+              You can then share the group link with them and they can claim this spot when they join.
+              <br /><br />
+              Be sure to use their full name so they know it&apos;s them!
             </DialogDescription>
           </DialogHeader>
           
@@ -119,7 +122,7 @@ export function AddPlaceholderDialog({ groupId, onPlaceholderAdded, children }: 
                   Creating...
                 </>
               ) : (
-                "Create Placeholder"
+                "Add Member"
               )}
             </Button>
           </DialogFooter>
