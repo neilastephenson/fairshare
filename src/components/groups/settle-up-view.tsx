@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CreditCard, ArrowRight, CheckCircle, Eye, DollarSign, Zap, Check, History, Undo2 } from "lucide-react";
+import { CreditCard, ArrowRight, CheckCircle, Eye, DollarSign, Check, History, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatAmount } from "@/lib/currency";
@@ -201,22 +201,11 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
       </div>
 
       {/* Settlement Optimization Info */}
-      <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20">
-        <CardContent className="p-4">
-          <div className="flex items-start space-x-3">
-            <Zap className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100">
-                Optimized Settlement Plan
-              </h3>
-              <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                This plan minimizes the number of transactions needed to settle all debts in your group.
-                Each person only needs to make or receive a few payments instead of individual settlements with everyone.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="text-center">
+        <p className="text-sm text-muted-foreground">
+          Optimized to minimize transactions needed to settle all debts
+        </p>
+      </div>
 
       {settlements.length === 0 ? (
         /* All Settled */

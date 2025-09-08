@@ -2,12 +2,10 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect, notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { group, groupMember, user } from "@/lib/schema";
+import { group, groupMember } from "@/lib/schema";
 import { eq, and } from "drizzle-orm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // Removed unused Card imports
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { ExpenseList } from "@/components/groups/expense-list";
 import { MemberList } from "@/components/groups/member-list";
 import { BalanceView } from "@/components/groups/balance-view";
@@ -37,19 +35,12 @@ export default async function GroupPage({ params }: GroupPageProps) {
     .select({
       group: group,
       role: groupMember.role,
-      creator: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        image: user.image,
-      },
     })
     .from(group)
     .leftJoin(groupMember, and(
       eq(groupMember.groupId, group.id),
       eq(groupMember.userId, session.user.id)
     ))
-    .leftJoin(user, eq(user.id, group.createdBy))
     .where(eq(group.id, groupId));
 
   if (!groupData || groupData.length === 0) {
@@ -86,39 +77,25 @@ export default async function GroupPage({ params }: GroupPageProps) {
             </div>
             <div className="flex items-center gap-2 flex-shrink-0 self-start sm:self-auto">
               {isAdmin && (
-                <GroupSettings
-                  groupId={groupId}
-                  groupName={groupInfo.group.name}
-                  groupDescription={groupInfo.group.description}
-                  groupCurrency={groupInfo.group.currency}
-                  isAdmin={isAdmin}
-                />
+                <>
+                  <InviteSection 
+                    groupId={groupId}
+                    inviteCode={groupInfo.group.inviteCode}
+                  />
+                  <GroupSettings
+                    groupId={groupId}
+                    groupName={groupInfo.group.name}
+                    groupDescription={groupInfo.group.description}
+                    groupCurrency={groupInfo.group.currency}
+                    isAdmin={isAdmin}
+                  />
+                </>
               )}
-              <Badge variant={isAdmin ? "default" : "secondary"}>
-                {isAdmin ? "Admin" : "Member"}
-              </Badge>
             </div>
           </div>
           
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
-            <span className="truncate">Created by {groupInfo.creator?.name}</span>
-            <span className="hidden sm:inline">•</span>
-            <span className="truncate">Created {new Date(groupInfo.group.createdAt).toLocaleDateString()}</span>
-          </div>
         </div>
 
-        {/* Invite Section for Admins */}
-        {isAdmin && (
-          <>
-            <InviteSection 
-              groupId={groupId}
-              inviteCode={groupInfo.group.inviteCode}
-            />
-            <div className="mb-8">
-              <Separator />
-            </div>
-          </>
-        )}
 
         {/* Main Tabs */}
         <Tabs defaultValue="expenses" className="w-full min-w-0">
