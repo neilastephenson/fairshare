@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Calendar } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -25,19 +24,16 @@ export function GroupList({ groups }: GroupListProps) {
         <Link key={group.id} href={`/groups/${group.id}`}>
           <Card className="hover:shadow-lg transition-shadow cursor-pointer">
             <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <CardTitle className="flex items-center gap-2">
+              <div className="flex items-start justify-between gap-2">
+                <div className="space-y-1 flex-1 min-w-0">
+                  <CardTitle className="truncate">
                     {group.name}
-                    {group.role === "admin" && (
-                      <Badge variant="secondary">Admin</Badge>
-                    )}
                   </CardTitle>
                   {group.description && (
-                    <CardDescription>{group.description}</CardDescription>
+                    <CardDescription className="line-clamp-2">{group.description}</CardDescription>
                   )}
                 </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0 mt-1" />
               </div>
             </CardHeader>
             <CardContent>

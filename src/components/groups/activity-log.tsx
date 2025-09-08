@@ -54,6 +54,9 @@ const getActivityIcon = (action: string) => {
       return <UserMinus className="h-4 w-4 text-red-600" />;
     case 'group_created':
       return <Users className="h-4 w-4 text-blue-600" />;
+    case 'settlement_paid':
+    case 'expense_settled':
+      return <Activity className="h-4 w-4 text-green-600" />;
     default:
       return <Activity className="h-4 w-4 text-gray-600" />;
   }
@@ -80,6 +83,10 @@ const getActivityMessage = (activity: ActivityItem, currency: string = "GBP") =>
       return `left the group`;
     case 'group_created':
       return `created the group`;
+    case 'settlement_paid':
+      return `settled up with ${metadata.recipientName || 'someone'} for ${metadata.amount ? formatAmount(parseFloat(metadata.amount), currency) : 'unknown amount'}`;
+    case 'expense_settled':
+      return `marked expenses as settled`;
     default:
       return `performed action: ${activity.action}`;
   }
@@ -90,6 +97,8 @@ const getActivityColor = (action: string) => {
     case 'expense_added':
     case 'member_joined':
     case 'group_created':
+    case 'settlement_paid':
+    case 'expense_settled':
       return 'border-l-green-500';
     case 'expense_edited':
       return 'border-l-blue-500';
@@ -112,7 +121,12 @@ export function ActivityLog({ groupId, currency = "GBP" }: ActivityLogProps) {
         throw new Error("Failed to fetch activities");
       }
       const data = await response.json();
-      setActivities(data.activities);
+      // Filter out group_updated activities
+      const filteredActivities = data.activities.filter((activity: ActivityItem) => 
+        activity.action !== 'group_updated' && 
+        activity.action !== 'group_edited'
+      );
+      setActivities(filteredActivities);
     } catch (error) {
       console.error("Error fetching activities:", error);
       toast.error("Failed to load activity log");
