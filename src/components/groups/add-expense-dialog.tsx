@@ -32,6 +32,7 @@ interface PlaceholderUser {
   id: string;
   name: string;
   createdAt: string;
+  claimedBy?: string;
 }
 
 interface Participant {
@@ -83,7 +84,12 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
       const membersData = await membersResponse.json();
       const placeholdersData = await placeholdersResponse.json();
       
-      // Combine members and placeholders into participants
+      // Combine members and unclaimed placeholders into participants
+      // Filter out claimed placeholders as they're now represented by actual users
+      const unclaimedPlaceholders = (placeholdersData.placeholderUsers || []).filter(
+        (p: PlaceholderUser) => !p.claimedBy
+      );
+      
       const allParticipants: Participant[] = [
         ...membersData.members.map((m: Member) => ({
           id: m.id,
@@ -92,7 +98,7 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
           image: m.image,
           type: "user" as const,
         })),
-        ...(placeholdersData.placeholderUsers || []).map((p: PlaceholderUser) => ({
+        ...unclaimedPlaceholders.map((p: PlaceholderUser) => ({
           id: p.id,
           name: p.name,
           type: "placeholder" as const,

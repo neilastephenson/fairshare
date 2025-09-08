@@ -68,13 +68,31 @@ export async function GET(
             .where(eq(placeholderUser.id, exp.paidBy))
             .limit(1);
           
-          paidByInfo = placeholder[0] ? {
-            id: placeholder[0].id,
-            name: placeholder[0].name,
-            email: null,
-            image: null,
-            isPlaceholder: true,
-          } : null;
+          // Check if placeholder has been claimed
+          if (placeholder[0]?.claimedBy) {
+            // Get the actual user who claimed this placeholder
+            const claimedByUser = await db
+              .select()
+              .from(user)
+              .where(eq(user.id, placeholder[0].claimedBy))
+              .limit(1);
+            
+            paidByInfo = claimedByUser[0] ? {
+              id: claimedByUser[0].id,
+              name: claimedByUser[0].name,
+              email: claimedByUser[0].email,
+              image: claimedByUser[0].image,
+              isPlaceholder: false,
+            } : null;
+          } else {
+            paidByInfo = placeholder[0] ? {
+              id: placeholder[0].id,
+              name: placeholder[0].name,
+              email: null,
+              image: null,
+              isPlaceholder: true,
+            } : null;
+          }
         } else {
           const userRecord = await db
             .select()
@@ -109,6 +127,8 @@ export async function GET(
         const participants = await Promise.all(
           participantRecords.map(async (p) => {
             let userInfo;
+            let actualUserId = p.userId;
+            let actualUserType = p.userType;
             
             if (p.userType === "placeholder") {
               const placeholder = await db
@@ -117,13 +137,35 @@ export async function GET(
                 .where(eq(placeholderUser.id, p.userId))
                 .limit(1);
               
-              userInfo = placeholder[0] ? {
-                id: placeholder[0].id,
-                name: placeholder[0].name,
-                email: null,
-                image: null,
-                isPlaceholder: true,
-              } : null;
+              // Check if placeholder has been claimed
+              if (placeholder[0]?.claimedBy) {
+                // Get the actual user who claimed this placeholder
+                const claimedByUser = await db
+                  .select()
+                  .from(user)
+                  .where(eq(user.id, placeholder[0].claimedBy))
+                  .limit(1);
+                
+                userInfo = claimedByUser[0] ? {
+                  id: claimedByUser[0].id,
+                  name: claimedByUser[0].name,
+                  email: claimedByUser[0].email,
+                  image: claimedByUser[0].image,
+                  isPlaceholder: false,
+                } : null;
+                
+                // Update the userId and userType to reflect the actual user
+                actualUserId = claimedByUser[0]?.id || p.userId;
+                actualUserType = "user";
+              } else {
+                userInfo = placeholder[0] ? {
+                  id: placeholder[0].id,
+                  name: placeholder[0].name,
+                  email: null,
+                  image: null,
+                  isPlaceholder: true,
+                } : null;
+              }
             } else {
               const userRecord = await db
                 .select()
@@ -141,8 +183,8 @@ export async function GET(
             }
 
             return {
-              userId: p.userId,
-              userType: p.userType,
+              userId: actualUserId,
+              userType: actualUserType,
               shareAmount: p.shareAmount,
               user: userInfo,
             };

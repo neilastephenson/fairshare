@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Loader2, UserCheck, Users } from "lucide-react";
+import { UserPlus, Loader2, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 
 interface JoinGroupFormProps {
@@ -89,26 +89,31 @@ export function JoinGroupForm({ groupId, groupName, inviteCode }: JoinGroupFormP
       {!loadingPlaceholders && placeholders.length > 0 && (
         <Card>
           <CardContent className="p-4">
-            <h3 className="font-semibold mb-3">Join as:</h3>
+            <h3 className="font-semibold mb-1">Are you one of these members?</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Select your name if you&apos;re already part of this group
+            </p>
             <RadioGroup value={selectedOption} onValueChange={setSelectedOption}>
               <div className="space-y-2">
-                <div className="flex items-center space-x-2 p-2 rounded hover:bg-muted/50">
-                  <RadioGroupItem value="new" id="new" />
-                  <Label htmlFor="new" className="flex-1 cursor-pointer flex items-center">
-                    <Users className="h-4 w-4 mr-2" />
-                    Join as myself (new member)
-                  </Label>
-                </div>
-                
                 {placeholders.map((placeholder) => (
-                  <div key={placeholder.id} className="flex items-center space-x-2 p-2 rounded hover:bg-muted/50">
+                  <div key={placeholder.id} className="flex items-center space-x-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
                     <RadioGroupItem value={placeholder.id} id={placeholder.id} />
                     <Label htmlFor={placeholder.id} className="flex-1 cursor-pointer flex items-center">
-                      <UserCheck className="h-4 w-4 mr-2" />
-                      Claim &ldquo;{placeholder.name}&rdquo; placeholder
+                      <UserCheck className="h-4 w-4 mr-2 text-primary" />
+                      <span className="font-medium">{placeholder.name}</span>
                     </Label>
                   </div>
                 ))}
+                
+                <div className="pt-2 border-t">
+                  <div className="flex items-center space-x-2 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                    <RadioGroupItem value="new" id="new" />
+                    <Label htmlFor="new" className="flex-1 cursor-pointer flex items-center">
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      <span>None of these are me, join as new member</span>
+                    </Label>
+                  </div>
+                </div>
               </div>
             </RadioGroup>
           </CardContent>
@@ -128,8 +133,17 @@ export function JoinGroupForm({ groupId, groupName, inviteCode }: JoinGroupFormP
           </>
         ) : (
           <>
-            <UserPlus className="h-4 w-4 mr-2" />
-            Join {groupName}
+            {selectedOption !== "new" ? (
+              <>
+                <UserCheck className="h-4 w-4 mr-2" />
+                Continue as {placeholders.find(p => p.id === selectedOption)?.name}
+              </>
+            ) : (
+              <>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Join {groupName}
+              </>
+            )}
           </>
         )}
       </Button>

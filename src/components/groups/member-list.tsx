@@ -170,7 +170,7 @@ export function MemberList({ groupId, currentUserId, isAdmin }: MemberListProps)
           </h2>
           <p className="text-muted-foreground">
             {members.length} member{members.length !== 1 ? 's' : ''}
-            {placeholders.length > 0 && ` and ${placeholders.length} placeholder${placeholders.length !== 1 ? 's' : ''}`} in this group
+            {placeholders.filter(p => !p.claimedBy).length > 0 && ` and ${placeholders.filter(p => !p.claimedBy).length} placeholder${placeholders.filter(p => !p.claimedBy).length !== 1 ? 's' : ''}`} in this group
           </p>
         </div>
         {isAdmin && (
@@ -184,7 +184,7 @@ export function MemberList({ groupId, currentUserId, isAdmin }: MemberListProps)
       {/* Members and Placeholders List */}
       <div className="space-y-4">
         {/* Placeholder Users */}
-        {placeholders.map((placeholder) => (
+        {placeholders.filter(placeholder => !placeholder.claimedBy).map((placeholder) => (
           <Card key={`placeholder-${placeholder.id}`} className="border-dashed">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -326,7 +326,7 @@ export function MemberList({ groupId, currentUserId, isAdmin }: MemberListProps)
         ))}
       </div>
 
-      {members.length === 0 && placeholders.length === 0 && (
+      {members.length === 0 && placeholders.filter(p => !p.claimedBy).length === 0 && (
         <Card>
           <CardContent className="p-8 text-center">
             <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
