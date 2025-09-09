@@ -89,15 +89,15 @@ export function GroupSettings({
           Settings
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] h-full sm:h-auto w-full sm:w-auto max-w-full sm:max-w-[425px] p-0 sm:p-6 flex flex-col justify-start">
-        <form onSubmit={handleSubmit} className="flex flex-col h-full p-6 sm:p-0">
-          <DialogHeader className="mb-4">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-hidden">
+        <form onSubmit={handleSubmit} className="flex flex-col max-h-[80vh] overflow-hidden">
+          <DialogHeader>
             <DialogTitle>Group Settings</DialogTitle>
             <DialogDescription>
               Update your group&apos;s information and preferences.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 flex-1 overflow-y-auto">
+          <div className="grid gap-4 py-4 overflow-y-auto flex-1">
             <div className="grid gap-2">
               <Label htmlFor="name">Group Name</Label>
               <Input
@@ -145,7 +145,7 @@ export function GroupSettings({
               </Select>
             </div>
           </div>
-          <DialogFooter className="mt-4 pt-4 border-t sm:border-t-0 sm:pt-0 sm:mt-6">
+          <DialogFooter className="flex-shrink-0">
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {loading ? "Updating..." : "Save Changes"}
