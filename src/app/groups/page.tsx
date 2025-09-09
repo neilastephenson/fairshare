@@ -2,11 +2,45 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { group, groupMember } from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { group, groupMember, expense, expenseParticipant } from "@/lib/schema";
+import { eq, and, sum as sqlSum } from "drizzle-orm";
 import { GroupList } from "@/components/groups/group-list";
 import { CreateGroupButton } from "@/components/groups/create-group-button";
 import { Users } from "lucide-react";
+
+async function getUserBalanceForGroup(groupId: string, userId: string): Promise<number> {
+  // Amount user paid
+  const paidResult = await db
+    .select({
+      total: sqlSum(expense.amount).mapWith((val) => Number(val) || 0),
+    })
+    .from(expense)
+    .where(and(
+      eq(expense.groupId, groupId),
+      eq(expense.paidBy, userId),
+      eq(expense.paidByType, 'user')
+    ));
+
+  const totalPaid = paidResult[0]?.total || 0;
+
+  // Amount user owes (their share of all expenses)
+  const owedResult = await db
+    .select({
+      total: sqlSum(expenseParticipant.shareAmount).mapWith((val) => Number(val) || 0),
+    })
+    .from(expenseParticipant)
+    .leftJoin(expense, eq(expenseParticipant.expenseId, expense.id))
+    .where(and(
+      eq(expense.groupId, groupId),
+      eq(expenseParticipant.userId, userId),
+      eq(expenseParticipant.userType, 'user')
+    ));
+
+  const totalOwed = owedResult[0]?.total || 0;
+
+  // Net balance: positive means they should receive money, negative means they owe money
+  return totalPaid - totalOwed;
+}
 
 export default async function GroupsPage() {
   const session = await auth.api.getSession({
@@ -26,7 +60,16 @@ export default async function GroupsPage() {
     .innerJoin(group, eq(groupMember.groupId, group.id))
     .where(eq(groupMember.userId, session.user.id));
 
-  const userGroups = memberships.map(m => m.group);
+  // Fetch balance for each group
+  const userGroups = await Promise.all(
+    memberships.map(async (m) => {
+      const balance = await getUserBalanceForGroup(m.group.id, session.user.id);
+      return {
+        ...m.group,
+        userBalance: balance,
+      };
+    })
+  );
 
   return (
     <main className="flex-1 container mx-auto px-4 py-8">
