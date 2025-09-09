@@ -270,14 +270,14 @@ export function EditExpenseDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-0">
+      <DialogContent className="max-w-md p-0 sm:max-w-md w-full sm:w-auto h-full sm:h-auto max-h-full sm:max-h-[calc(100vh-2rem)] flex flex-col sm:block">
         {viewMode === "main" && (
-          <form onSubmit={handleSubmit}>
-            <DialogHeader className="px-6 pt-6 pb-2">
+          <form onSubmit={handleSubmit} className="flex flex-col h-full sm:h-auto">
+            <DialogHeader className="px-6 pt-6 pb-2 flex-shrink-0">
               <DialogTitle>Edit expense</DialogTitle>
             </DialogHeader>
 
-            <div className="px-6 py-4 space-y-4">
+            <div className="px-6 py-4 space-y-4 flex-grow sm:flex-grow-0 overflow-y-auto">
               {/* Description Field */}
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-muted rounded-lg">
@@ -343,7 +343,7 @@ export function EditExpenseDialog({
               </div>
             </div>
 
-            <DialogFooter className="px-6 pb-6">
+            <DialogFooter className="px-6 pb-6 flex-shrink-0 border-t sm:border-t-0 bg-background">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
                 Cancel
               </Button>
@@ -362,8 +362,8 @@ export function EditExpenseDialog({
         )}
 
         {viewMode === "paidBy" && (
-          <div>
-            <DialogHeader className="px-6 pt-6 pb-4 flex flex-row items-center gap-3">
+          <div className="flex flex-col h-full sm:h-auto">
+            <DialogHeader className="px-6 pt-6 pb-4 flex flex-row items-center gap-3 flex-shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
@@ -375,7 +375,7 @@ export function EditExpenseDialog({
               <DialogTitle>Who paid?</DialogTitle>
             </DialogHeader>
 
-            <div className="px-6 pb-6">
+            <div className="px-6 pb-6 flex-grow overflow-y-auto">
               <RadioGroup value={paidBy} onValueChange={handlePaidByChange}>
                 {participants.map((participant) => (
                   <div
@@ -413,8 +413,8 @@ export function EditExpenseDialog({
         )}
 
         {viewMode === "split" && (
-          <div>
-            <DialogHeader className="px-6 pt-6 pb-4 flex flex-row items-center gap-3">
+          <div className="flex flex-col h-full sm:h-auto">
+            <DialogHeader className="px-6 pt-6 pb-4 flex flex-row items-center gap-3 flex-shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
@@ -426,7 +426,7 @@ export function EditExpenseDialog({
               <DialogTitle>Split options</DialogTitle>
             </DialogHeader>
 
-            <div className="px-6 pb-6 space-y-4">
+            <div className="px-6 py-4 space-y-4 flex-grow overflow-y-auto">
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Split equally between:</Label>
                 {participants.map((participant) => (
@@ -471,7 +471,9 @@ export function EditExpenseDialog({
                   </div>
                 ))}
               </div>
+            </div>
 
+            <div className="px-6 pb-6 flex-shrink-0 border-t sm:border-t-0 bg-background">
               <Button
                 className="w-full"
                 onClick={() => setViewMode("main")}
