@@ -4,8 +4,15 @@ import { db } from "@/lib/db";
 import { user } from "@/lib/schema";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
+import { validateRequestBody } from "@/lib/request-size-limit";
 
 export async function PUT(request: NextRequest) {
+  // Validate request size and parse body (16KB limit for user data)
+  const bodyValidation = await validateRequestBody(request, "user");
+  if (!bodyValidation.success && bodyValidation.response) {
+    return bodyValidation.response;
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -15,7 +22,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
+    const body = bodyValidation.body;
     const { paymentInfo } = body;
 
     // Update the user's payment information

@@ -4,12 +4,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { group, groupMember, user, activityLog, placeholderUser, expense, expenseParticipant } from "@/lib/schema";
 import { eq, and, isNull } from "drizzle-orm";
+import { rateLimit } from "@/lib/rate-limit";
 
 // POST /api/invite/[code] - Join a group using invite code
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ code: string }> }
 ) {
+  // Apply rate limiting for invite operations
+  const rateLimitResult = await rateLimit(request, "invite");
+  if (!rateLimitResult.success && rateLimitResult.response) {
+    return rateLimitResult.response;
+  }
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -173,6 +179,11 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ code: string }> }
 ) {
+  // Apply rate limiting for invite info requests
+  const rateLimitResult = await rateLimit(request, "invite");
+  if (!rateLimitResult.success && rateLimitResult.response) {
+    return rateLimitResult.response;
+  }
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

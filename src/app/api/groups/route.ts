@@ -5,8 +5,22 @@ import { group, groupMember, activityLog } from "@/lib/schema";
 import { headers } from "next/headers";
 import { nanoid } from "nanoid";
 import { eq } from "drizzle-orm";
+import { rateLimit } from "@/lib/rate-limit";
+import { validateRequestBody } from "@/lib/request-size-limit";
 
 export async function POST(request: NextRequest) {
+  // Apply rate limiting for group creation
+  const rateLimitResult = await rateLimit(request, "groupWrite");
+  if (!rateLimitResult.success && rateLimitResult.response) {
+    return rateLimitResult.response;
+  }
+
+  // Validate request size and parse body (64KB limit for group operations)
+  const bodyValidation = await validateRequestBody(request, "group");
+  if (!bodyValidation.success && bodyValidation.response) {
+    return bodyValidation.response;
+  }
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -16,7 +30,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
+    const body = bodyValidation.body;
     const { name, description, currency } = body;
 
     if (!name?.trim()) {
@@ -71,7 +85,12 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Apply rate limiting for group reading
+  const rateLimitResult = await rateLimit(request, "groupRead");
+  if (!rateLimitResult.success && rateLimitResult.response) {
+    return rateLimitResult.response;
+  }
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
