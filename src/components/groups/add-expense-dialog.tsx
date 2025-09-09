@@ -18,6 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Loader2, Receipt, ArrowLeft, Check } from "lucide-react";
 import { toast } from "sonner";
 import { getCurrencySymbol } from "@/lib/currency";
+import { useSession } from "@/lib/auth-client";
 
 interface Member {
   id: string;
@@ -52,6 +53,7 @@ interface AddExpenseDialogProps {
 type ViewMode = "main" | "paidBy" | "split";
 
 export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, children }: AddExpenseDialogProps) {
+  const { data: session } = useSession();
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -106,10 +108,20 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
       
       setParticipants(allParticipants);
       
-      // Default to first participant if paidBy is not set
+      // Default to current user if they are in the group, otherwise first participant
       if (!paidBy && allParticipants.length > 0) {
-        setPaidBy(allParticipants[0].id);
-        setPaidByName(allParticipants[0].name);
+        const currentUser = session?.user;
+        const currentUserParticipant = currentUser 
+          ? allParticipants.find(p => p.id === currentUser.id)
+          : null;
+        
+        if (currentUserParticipant) {
+          setPaidBy(currentUserParticipant.id);
+          setPaidByName(currentUserParticipant.name);
+        } else {
+          setPaidBy(allParticipants[0].id);
+          setPaidByName(allParticipants[0].name);
+        }
       }
       
       // Default to all members selected for split
@@ -119,7 +131,7 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
       console.error("Error fetching members:", error);
       toast.error("Failed to load group members");
     }
-  }, [groupId, paidBy]);
+  }, [groupId, paidBy, session]);
 
 
   useEffect(() => {
@@ -131,10 +143,20 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
   const resetForm = () => {
     setDescription("");
     setAmount("");
-    // Reset to first participant if available
+    // Reset to current user if they are in the group, otherwise first participant
     if (participants.length > 0) {
-      setPaidBy(participants[0].id);
-      setPaidByName(participants[0].name);
+      const currentUser = session?.user;
+      const currentUserParticipant = currentUser 
+        ? participants.find(p => p.id === currentUser.id)
+        : null;
+      
+      if (currentUserParticipant) {
+        setPaidBy(currentUserParticipant.id);
+        setPaidByName(currentUserParticipant.name);
+      } else {
+        setPaidBy(participants[0].id);
+        setPaidByName(participants[0].name);
+      }
     } else {
       setPaidBy("");
       setPaidByName("");
@@ -290,14 +312,14 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-md p-0">
+      <DialogContent className="max-w-md p-0 sm:max-w-md w-full sm:w-auto h-full sm:h-auto max-h-full sm:max-h-[calc(100vh-2rem)] flex flex-col sm:block">
         {viewMode === "main" && (
-          <form onSubmit={handleSubmit}>
-            <DialogHeader className="px-6 pt-6 pb-2">
+          <form onSubmit={handleSubmit} className="flex flex-col h-full sm:h-auto">
+            <DialogHeader className="px-6 pt-6 pb-2 flex-shrink-0">
               <DialogTitle>Add expense</DialogTitle>
             </DialogHeader>
 
-            <div className="px-6 py-4 space-y-4">
+            <div className="px-6 py-4 space-y-4 flex-grow sm:flex-grow-0 overflow-y-auto">
               {/* Description Field */}
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-muted rounded-lg">
@@ -359,7 +381,7 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
               </div>
             </div>
 
-            <DialogFooter className="px-6 pb-6">
+            <DialogFooter className="px-6 pb-6 flex-shrink-0 border-t sm:border-t-0 bg-background">
               <Button
                 type="button"
                 variant="outline"
@@ -383,8 +405,8 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
         )}
 
         {viewMode === "paidBy" && (
-          <div>
-            <DialogHeader className="px-6 pt-6 pb-4 flex flex-row items-center gap-3">
+          <div className="flex flex-col h-full sm:h-auto">
+            <DialogHeader className="px-6 pt-6 pb-4 flex flex-row items-center gap-3 flex-shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
@@ -396,7 +418,7 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
               <DialogTitle>Who paid?</DialogTitle>
             </DialogHeader>
 
-            <div className="px-6 pb-6">
+            <div className="px-6 pb-6 flex-grow overflow-y-auto">
               <RadioGroup value={paidBy} onValueChange={handlePaidByChange}>
                 {participants.map((participant) => (
                   <div
@@ -434,8 +456,8 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
         )}
 
         {viewMode === "split" && (
-          <div>
-            <DialogHeader className="px-6 pt-6 pb-4 flex flex-row items-center gap-3">
+          <div className="flex flex-col h-full sm:h-auto">
+            <DialogHeader className="px-6 pt-6 pb-4 flex flex-row items-center gap-3 flex-shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
@@ -447,7 +469,7 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
               <DialogTitle>Split options</DialogTitle>
             </DialogHeader>
 
-            <div className="px-6 pb-6 space-y-4">
+            <div className="px-6 py-4 space-y-4 flex-grow overflow-y-auto">
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Split equally between:</Label>
                 {participants.map((participant) => (
@@ -492,7 +514,9 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
                   </div>
                 ))}
               </div>
+            </div>
 
+            <div className="px-6 pb-6 flex-shrink-0 border-t sm:border-t-0 bg-background">
               <Button
                 className="w-full"
                 onClick={() => setViewMode("main")}
