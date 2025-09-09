@@ -84,20 +84,34 @@ export default async function GroupsPage() {
               Manage your expense groups and create new ones
             </p>
           </div>
-          <CreateGroupButton />
+          <div className="hidden sm:block">
+            <CreateGroupButton />
+          </div>
         </div>
 
         {userGroups.length === 0 ? (
-          <div className="text-center py-12 border rounded-lg bg-muted/20">
-            <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-xl font-semibold mb-2">No groups yet</h2>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Create your first group to start tracking shared expenses with friends, family, or roommates.
-            </p>
-            <CreateGroupButton />
-          </div>
+          <>
+            <div className="text-center py-12 border rounded-lg bg-muted/20">
+              <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h2 className="text-xl font-semibold mb-2">No groups yet</h2>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                Create your first group to start tracking shared expenses with friends, family, or roommates.
+              </p>
+              <div className="hidden sm:block">
+                <CreateGroupButton />
+              </div>
+            </div>
+            <div className="mt-6 sm:hidden">
+              <CreateGroupButton fullWidth />
+            </div>
+          </>
         ) : (
-          <GroupList groups={userGroups} />
+          <>
+            <GroupList groups={userGroups} />
+            <div className="mt-6 sm:hidden">
+              <CreateGroupButton fullWidth />
+            </div>
+          </>
         )}
       </div>
     </main>

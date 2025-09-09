@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { UserProfile } from "@/components/auth/user-profile";
-import { ModeToggle } from "./ui/mode-toggle";
 import { Receipt } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 
@@ -27,7 +26,6 @@ export function SiteHeader() {
         </h1>
         <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
           <UserProfile />
-          <ModeToggle />
         </div>
       </div>
     </header>

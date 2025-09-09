@@ -25,7 +25,11 @@ import {
 import { Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-export function CreateGroupButton() {
+interface CreateGroupButtonProps {
+  fullWidth?: boolean;
+}
+
+export function CreateGroupButton({ fullWidth = false }: CreateGroupButtonProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -76,7 +80,7 @@ export function CreateGroupButton() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
+        <Button className={fullWidth ? "w-full" : ""}>
           <Plus className="mr-2 h-4 w-4" />
           Create Group
         </Button>
