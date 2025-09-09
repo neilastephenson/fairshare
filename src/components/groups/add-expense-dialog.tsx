@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -13,10 +12,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Loader2, Calculator } from "lucide-react";
+import { Plus, Loader2, Receipt, ArrowLeft, Check } from "lucide-react";
 import { toast } from "sonner";
 import { getCurrencySymbol } from "@/lib/currency";
 
@@ -50,24 +49,25 @@ interface AddExpenseDialogProps {
   children?: React.ReactNode;
 }
 
+type ViewMode = "main" | "paidBy" | "split";
+
 export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, children }: AddExpenseDialogProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [participants, setParticipants] = useState<Participant[]>([]);
-  const [loadingMembers, setLoadingMembers] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("main");
 
   // Form state
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [paidBy, setPaidBy] = useState("");
+  const [paidByName, setPaidByName] = useState("");
   const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
   const [splitType, setSplitType] = useState<"equal" | "custom">("equal");
   const [customAmounts, setCustomAmounts] = useState<Record<string, string>>({});
 
   // Fetch group members and placeholder users
   const fetchMembers = useCallback(async () => {
-    setLoadingMembers(true);
     try {
       const [membersResponse, placeholdersResponse] = await Promise.all([
         fetch(`/api/groups/${groupId}/members`),
@@ -85,7 +85,6 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
       const placeholdersData = await placeholdersResponse.json();
       
       // Combine members and unclaimed placeholders into participants
-      // Filter out claimed placeholders as they're now represented by actual users
       const unclaimedPlaceholders = (placeholdersData.placeholderUsers || []).filter(
         (p: PlaceholderUser) => !p.claimedBy
       );
@@ -106,13 +105,22 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
       ];
       
       setParticipants(allParticipants);
+      
+      // Default to first participant if paidBy is not set
+      if (!paidBy && allParticipants.length > 0) {
+        setPaidBy(allParticipants[0].id);
+        setPaidByName(allParticipants[0].name);
+      }
+      
+      // Default to all members selected for split
+      const allIds = allParticipants.map(p => p.id);
+      setSelectedMembers(new Set(allIds));
     } catch (error) {
       console.error("Error fetching members:", error);
       toast.error("Failed to load group members");
-    } finally {
-      setLoadingMembers(false);
     }
-  }, [groupId]);
+  }, [groupId, paidBy]);
+
 
   useEffect(() => {
     if (open) {
@@ -123,11 +131,26 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
   const resetForm = () => {
     setDescription("");
     setAmount("");
-    setDate(new Date().toISOString().split('T')[0]);
-    setPaidBy("");
-    setSelectedMembers(new Set());
+    // Reset to first participant if available
+    if (participants.length > 0) {
+      setPaidBy(participants[0].id);
+      setPaidByName(participants[0].name);
+    } else {
+      setPaidBy("");
+      setPaidByName("");
+    }
+    const allIds = participants.map(p => p.id);
+    setSelectedMembers(new Set(allIds));
     setSplitType("equal");
     setCustomAmounts({});
+    setViewMode("main");
+  };
+
+  const handlePaidByChange = (value: string) => {
+    setPaidBy(value);
+    const participant = participants.find(p => p.id === value);
+    setPaidByName(participant?.name || "");
+    setViewMode("main");
   };
 
   const handleMemberToggle = (memberId: string, checked: boolean) => {
@@ -143,13 +166,6 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
     if (splitType === "custom") {
       setCustomAmounts({});
     }
-  };
-
-  const handleCustomAmountChange = (memberId: string, value: string) => {
-    setCustomAmounts(prev => ({
-      ...prev,
-      [memberId]: value
-    }));
   };
 
   const calculateSplitAmounts = () => {
@@ -209,7 +225,7 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
       const expenseData = {
         description: description.trim(),
         amount: parseFloat(amount),
-        date: new Date(date).toISOString(),
+        date: new Date().toISOString(), // Always use current date
         paidBy,
         paidByType,
         participants: Array.from(selectedMembers).map(memberId => {
@@ -247,14 +263,25 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
     }
   };
 
-  const getCustomTotal = () => {
-    return Array.from(selectedMembers).reduce((sum, id) => {
-      return sum + (parseFloat(customAmounts[id]) || 0);
-    }, 0);
+  const getSplitTypeLabel = () => {
+    if (selectedMembers.size === participants.length) {
+      return "equally";
+    } else if (splitType === "equal") {
+      return `${selectedMembers.size} people`;
+    } else {
+      return "custom";
+    }
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (!newOpen) {
+      resetForm();
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {children || (
           <Button>
@@ -263,112 +290,126 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Add New Expense</DialogTitle>
-          <DialogDescription>
-            Record a shared expense and split it among group members
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-md p-0">
+        {viewMode === "main" && (
+          <form onSubmit={handleSubmit}>
+            <DialogHeader className="px-6 pt-6 pb-2">
+              <DialogTitle>Add expense</DialogTitle>
+            </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="description">Description *</Label>
-              <Input
-                id="description"
-                placeholder="e.g., Dinner at restaurant"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="amount">Amount ({getCurrencySymbol(currency)}) *</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
-            <Input
-              id="date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-          </div>
-
-          {/* Paid By */}
-          <div className="space-y-2">
-            <Label>Paid By *</Label>
-            {loadingMembers ? (
-              <div className="flex items-center space-x-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Loading members...</span>
+            <div className="px-6 py-4 space-y-4">
+              {/* Description Field */}
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-muted rounded-lg">
+                  <Receipt className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <Input
+                  placeholder="Enter a description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="flex-1 border-0 shadow-none px-0 text-base focus-visible:ring-0"
+                  required
+                />
               </div>
-            ) : (
-              <Select value={paidBy} onValueChange={setPaidBy}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select who paid" />
-                </SelectTrigger>
-                <SelectContent>
-                  {participants.map((participant) => (
-                    <SelectItem key={participant.id} value={participant.id}>
-                      <div className="flex items-center space-x-2">
-                        <Avatar className="h-5 w-5">
-                          {participant.type === "user" && participant.image && (
-                            <AvatarImage src={participant.image} />
-                          )}
-                          <AvatarFallback className="text-xs">
-                            {participant.name.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span>{participant.name}</span>
-                        {participant.type === "placeholder" && (
-                          <span className="text-xs text-muted-foreground">(Pending)</span>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
 
-          {/* Split Among */}
-          <div className="space-y-3">
-            <Label>Split Among *</Label>
-            {loadingMembers ? (
-              <div className="flex items-center space-x-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Loading members...</span>
+              {/* Amount Field */}
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-muted rounded-lg">
+                  <span className="text-xl font-medium text-muted-foreground">
+                    {getCurrencySymbol(currency)}
+                  </span>
+                </div>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="flex-1 border-0 shadow-none px-0 text-2xl font-semibold focus-visible:ring-0"
+                  required
+                />
               </div>
-            ) : (
-              <div className="space-y-2">
+
+              {/* Paid By and Split */}
+              <div className="flex items-center justify-center gap-2 py-2">
+                <span className="text-sm text-muted-foreground">Paid by</span>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                  onClick={() => setViewMode("paidBy")}
+                >
+                  {paidByName}
+                </Button>
+
+                <span className="text-sm text-muted-foreground">and split</span>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                  onClick={() => setViewMode("split")}
+                >
+                  {getSplitTypeLabel()}
+                </Button>
+              </div>
+            </div>
+
+            <DialogFooter className="px-6 pb-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleOpenChange(false)}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading || !description || !amount}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  "Add Expense"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
+
+        {viewMode === "paidBy" && (
+          <div>
+            <DialogHeader className="px-6 pt-6 pb-4 flex flex-row items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setViewMode("main")}
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <DialogTitle>Who paid?</DialogTitle>
+            </DialogHeader>
+
+            <div className="px-6 pb-6">
+              <RadioGroup value={paidBy} onValueChange={handlePaidByChange}>
                 {participants.map((participant) => (
                   <div
                     key={participant.id}
-                    className="flex items-center justify-between p-3 border rounded-lg"
+                    className="flex items-center space-x-3 py-3 cursor-pointer hover:bg-muted/50 -mx-2 px-2 rounded-md"
+                    onClick={() => handlePaidByChange(participant.id)}
                   >
-                    <div className="flex items-center space-x-3">
-                      <Checkbox
-                        checked={selectedMembers.has(participant.id)}
-                        onCheckedChange={(checked) => 
-                          handleMemberToggle(participant.id, checked as boolean)
-                        }
-                      />
-                      <Avatar className="h-6 w-6">
+                    <RadioGroupItem value={participant.id} id={`paid-${participant.id}`} />
+                    <Label 
+                      htmlFor={`paid-${participant.id}`} 
+                      className="flex items-center gap-2 cursor-pointer flex-1"
+                    >
+                      <Avatar className="h-8 w-8">
                         {participant.type === "user" && participant.image && (
                           <AvatarImage src={participant.image} />
                         )}
@@ -376,92 +417,92 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
                           {participant.name.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="font-medium">{participant.name}</span>
-                      {participant.type === "placeholder" && (
-                        <span className="text-xs text-muted-foreground ml-1">(Pending)</span>
+                      <div>
+                        <div className="font-medium">
+                          {participant.name}
+                        </div>
+                        {participant.type === "placeholder" && (
+                          <div className="text-xs text-muted-foreground">Pending</div>
+                        )}
+                      </div>
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+          </div>
+        )}
+
+        {viewMode === "split" && (
+          <div>
+            <DialogHeader className="px-6 pt-6 pb-4 flex flex-row items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setViewMode("main")}
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <DialogTitle>Split options</DialogTitle>
+            </DialogHeader>
+
+            <div className="px-6 pb-6 space-y-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Split equally between:</Label>
+                {participants.map((participant) => (
+                  <div
+                    key={participant.id}
+                    className="flex items-center space-x-3 py-2 hover:bg-muted/50 -mx-2 px-2 rounded-md cursor-pointer"
+                    onClick={() => handleMemberToggle(participant.id, !selectedMembers.has(participant.id))}
+                  >
+                    <Checkbox
+                      id={`split-${participant.id}`}
+                      checked={selectedMembers.has(participant.id)}
+                      onCheckedChange={(checked) => 
+                        handleMemberToggle(participant.id, checked as boolean)
+                      }
+                    />
+                    <Label 
+                      htmlFor={`split-${participant.id}`}
+                      className="flex items-center gap-2 cursor-pointer flex-1 font-normal"
+                    >
+                      <Avatar className="h-8 w-8">
+                        {participant.type === "user" && participant.image && (
+                          <AvatarImage src={participant.image} />
+                        )}
+                        <AvatarFallback className="text-xs">
+                          {participant.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="font-medium">
+                          {participant.name}
+                        </div>
+                        {participant.type === "placeholder" && (
+                          <div className="text-xs text-muted-foreground">Pending</div>
+                        )}
+                      </div>
+                      {selectedMembers.has(participant.id) && amount && (
+                        <span className="text-sm text-muted-foreground">
+                          {getCurrencySymbol(currency)}{(parseFloat(amount) / selectedMembers.size).toFixed(2)}
+                        </span>
                       )}
-                    </div>
-                    {selectedMembers.has(participant.id) && splitType === "custom" && (
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="0.00"
-                        value={customAmounts[participant.id] || ""}
-                        onChange={(e) => handleCustomAmountChange(participant.id, e.target.value)}
-                        className="w-24"
-                      />
-                    )}
+                    </Label>
                   </div>
                 ))}
               </div>
-            )}
-          </div>
 
-          {/* Split Type */}
-          {selectedMembers.size > 0 && (
-            <div className="space-y-3">
-              <Label>Split Type</Label>
-              <div className="flex gap-4">
-                <Button
-                  type="button"
-                  variant={splitType === "equal" ? "default" : "outline"}
-                  onClick={() => setSplitType("equal")}
-                  className="flex-1"
-                >
-                  Equal Split
-                </Button>
-                <Button
-                  type="button"
-                  variant={splitType === "custom" ? "default" : "outline"}
-                  onClick={() => setSplitType("custom")}
-                  className="flex-1"
-                >
-                  <Calculator className="h-4 w-4 mr-2" />
-                  Custom Split
-                </Button>
-              </div>
-
-              {splitType === "equal" && amount && selectedMembers.size > 0 && (
-                <div className="text-sm text-muted-foreground p-3 bg-muted rounded-lg">
-                  Each person pays: {getCurrencySymbol(currency)}{(parseFloat(amount) / selectedMembers.size).toFixed(2)}
-                </div>
-              )}
-
-              {splitType === "custom" && amount && (
-                <div className="text-sm p-3 bg-muted rounded-lg">
-                  <div className="flex justify-between">
-                    <span>Total: {getCurrencySymbol(currency)}{parseFloat(amount).toFixed(2)}</span>
-                    <span className={getCustomTotal() === parseFloat(amount) ? "text-green-600" : "text-red-600"}>
-                      Custom Total: {getCurrencySymbol(currency)}{getCustomTotal().toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-              )}
+              <Button
+                className="w-full"
+                onClick={() => setViewMode("main")}
+              >
+                <Check className="h-4 w-4 mr-2" />
+                Done
+              </Button>
             </div>
-          )}
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Adding...
-                </>
-              ) : (
-                "Add Expense"
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

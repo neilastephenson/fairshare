@@ -4,9 +4,22 @@
       "command": "npx",
       "args": ["shadcn@latest", "mcp"]
     },
-    "playwright": {
+    "playwright-desktop": {
       "command": "npx",
-      "args": ["@playwright/mcp@latest"]
+      "args": [
+        "@playwright/mcp@latest",
+        "--browser=chrome",
+        "--isolated"
+      ]
+    },
+    "playwright-mobile": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--browser=chrome",
+        "--device=iPhone 15",
+        "--isolated"
+      ]
     }
   }
 }

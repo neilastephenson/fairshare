@@ -29,7 +29,17 @@
       "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_LrXCHTIp4R/**)",
       "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_arYE5HjEfm/**)",
       "mcp__playwright__browser_resize",
-      "mcp__playwright__browser_wait_for"
+      "mcp__playwright__browser_wait_for",
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_gJmIrufEPz/**)",
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_OHe38rgpj8/**)",
+      "mcp__playwright__browser_snapshot",
+      "Bash(git restore:*)",
+      "mcp__playwright-mobile__browser_navigate",
+      "mcp__playwright-mobile__browser_snapshot",
+      "mcp__playwright-mobile__browser_take_screenshot",
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_DusXaXKg4O/**)",
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_rZETqxEZCb/**)",
+      "mcp__shadcn__search_items_in_registries"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"
