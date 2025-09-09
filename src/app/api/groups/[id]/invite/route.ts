@@ -22,7 +22,7 @@ export async function GET(
 
     const { id: groupId } = await params;
 
-    // Verify user is an admin of the group
+    // Verify user is a member of the group
     const membership = await db
       .select()
       .from(groupMember)
@@ -34,10 +34,6 @@ export async function GET(
 
     if (membership.length === 0) {
       return NextResponse.json({ error: "Not a member of this group" }, { status: 403 });
-    }
-
-    if (membership[0].role !== "admin") {
-      return NextResponse.json({ error: "Only admins can access invite info" }, { status: 403 });
     }
 
     // Get group invite code
@@ -83,7 +79,7 @@ export async function POST(
 
     const { id: groupId } = await params;
 
-    // Verify user is an admin of the group
+    // Verify user is a member of the group
     const membership = await db
       .select()
       .from(groupMember)
@@ -95,10 +91,6 @@ export async function POST(
 
     if (membership.length === 0) {
       return NextResponse.json({ error: "Not a member of this group" }, { status: 403 });
-    }
-
-    if (membership[0].role !== "admin") {
-      return NextResponse.json({ error: "Only admins can regenerate invite codes" }, { status: 403 });
     }
 
     // Generate new invite code

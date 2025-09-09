@@ -34,7 +34,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
   const groupData = await db
     .select({
       group: group,
-      role: groupMember.role,
+      isMember: groupMember.userId,
     })
     .from(group)
     .leftJoin(groupMember, and(
@@ -50,11 +50,9 @@ export default async function GroupPage({ params }: GroupPageProps) {
   const groupInfo = groupData[0];
   
   // Check if user is a member
-  if (!groupInfo.role) {
+  if (!groupInfo.isMember) {
     redirect(`/invite/${groupInfo.group.inviteCode}`);
   }
-
-  const isAdmin = groupInfo.role === 'admin';
 
   return (
     <main className="flex-1 container mx-auto px-4 py-8 min-w-0">
@@ -76,21 +74,16 @@ export default async function GroupPage({ params }: GroupPageProps) {
               </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0 self-start sm:self-auto">
-              {isAdmin && (
-                <>
-                  <InviteSection 
-                    groupId={groupId}
-                    inviteCode={groupInfo.group.inviteCode}
-                  />
-                  <GroupSettings
-                    groupId={groupId}
-                    groupName={groupInfo.group.name}
-                    groupDescription={groupInfo.group.description}
-                    groupCurrency={groupInfo.group.currency}
-                    isAdmin={isAdmin}
-                  />
-                </>
-              )}
+              <InviteSection 
+                groupId={groupId}
+                inviteCode={groupInfo.group.inviteCode}
+              />
+              <GroupSettings
+                groupId={groupId}
+                groupName={groupInfo.group.name}
+                groupDescription={groupInfo.group.description}
+                groupCurrency={groupInfo.group.currency}
+              />
             </div>
           </div>
           
@@ -138,7 +131,6 @@ export default async function GroupPage({ params }: GroupPageProps) {
             <MemberList 
               groupId={groupId}
               currentUserId={session.user.id}
-              isAdmin={isAdmin}
             />
           </TabsContent>
 

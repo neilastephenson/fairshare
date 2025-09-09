@@ -22,7 +22,7 @@ export async function PATCH(
     const body = await request.json();
     const { name, description, currency } = body;
 
-    // Check if user is an admin of the group
+    // Check if user is a member of the group
     const membership = await db
       .select()
       .from(groupMember)
@@ -35,10 +35,6 @@ export async function PATCH(
 
     if (!membership || membership.length === 0) {
       return NextResponse.json({ error: "Not a member of this group" }, { status: 403 });
-    }
-
-    if (membership[0].role !== "admin") {
-      return NextResponse.json({ error: "Only admins can edit group settings" }, { status: 403 });
     }
 
     // Prepare update data

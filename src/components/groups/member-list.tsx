@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Users, MoreHorizontal, Shield, UserMinus, Crown, UserCheck, Trash2 } from "lucide-react";
+import { Users, MoreHorizontal, UserCheck, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { AddPlaceholderDialog } from "./add-placeholder-dialog";
@@ -21,7 +21,6 @@ interface Member {
   name: string;
   email: string;
   image?: string;
-  role: string;
   joinedAt: string;
 }
 
@@ -32,15 +31,15 @@ interface PlaceholderUser {
   createdBy: string;
   claimedBy?: string;
   claimedAt?: string;
+  hasExpenses?: boolean;
 }
 
 interface MemberListProps {
   groupId: string;
   currentUserId: string;
-  isAdmin: boolean;
 }
 
-export function MemberList({ groupId, currentUserId, isAdmin }: MemberListProps) {
+export function MemberList({ groupId, currentUserId }: MemberListProps) {
   const [members, setMembers] = useState<Member[]>([]);
   const [placeholders, setPlaceholders] = useState<PlaceholderUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,47 +75,6 @@ export function MemberList({ groupId, currentUserId, isAdmin }: MemberListProps)
     fetchMembers();
   }, [fetchMembers]);
 
-  const updateMemberRole = async (memberId: string, newRole: string) => {
-    try {
-      const response = await fetch(`/api/groups/${groupId}/members/${memberId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ role: newRole }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to update member role");
-      }
-
-      toast.success(`Member role updated to ${newRole}`);
-      fetchMembers();
-    } catch (error) {
-      console.error("Error updating member role:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to update member role");
-    }
-  };
-
-  const removeMember = async (memberId: string) => {
-    try {
-      const response = await fetch(`/api/groups/${groupId}/members/${memberId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to remove member");
-      }
-
-      toast.success("Member removed from group");
-      fetchMembers();
-    } catch (error) {
-      console.error("Error removing member:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to remove member");
-    }
-  };
 
   const removePlaceholder = async (placeholderId: string) => {
     try {
@@ -181,12 +139,10 @@ export function MemberList({ groupId, currentUserId, isAdmin }: MemberListProps)
             }
           </p>
         </div>
-        {isAdmin && (
-          <AddPlaceholderDialog
-            groupId={groupId}
-            onPlaceholderAdded={fetchMembers}
-          />
-        )}
+        <AddPlaceholderDialog
+          groupId={groupId}
+          onPlaceholderAdded={fetchMembers}
+        />
       </div>
 
       {/* Members and Placeholders List */}
@@ -231,8 +187,8 @@ export function MemberList({ groupId, currentUserId, isAdmin }: MemberListProps)
                     </Badge>
                   )}
 
-                  {/* Action Menu (only for admins) */}
-                  {isAdmin && !placeholder.claimedBy && (
+                  {/* Action Menu - only show if unclaimed and has no expenses */}
+                  {!placeholder.claimedBy && !placeholder.hasExpenses && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm">
@@ -285,53 +241,6 @@ export function MemberList({ groupId, currentUserId, isAdmin }: MemberListProps)
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  {/* Show crown icon only on mobile for admin, full badge on desktop */}
-                  {member.role === 'admin' && (
-                    <>
-                      {/* Mobile: Just crown icon */}
-                      <div className="md:hidden">
-                        <Crown className="h-4 w-4 text-primary" />
-                      </div>
-                      {/* Desktop: Full badge */}
-                      <Badge variant="default" className="hidden md:flex">
-                        <Crown className="h-3 w-3 mr-1" />
-                        Admin
-                      </Badge>
-                    </>
-                  )}
-
-                  {/* Action Menu (only for admins, not for current user) */}
-                  {isAdmin && member.id !== currentUserId && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {member.role === 'member' ? (
-                          <DropdownMenuItem onClick={() => updateMemberRole(member.id, 'admin')}>
-                            <Shield className="h-4 w-4 mr-2" />
-                            Make Admin
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem onClick={() => updateMemberRole(member.id, 'member')}>
-                            <Users className="h-4 w-4 mr-2" />
-                            Remove Admin
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem
-                          onClick={() => removeMember(member.id)}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <UserMinus className="h-4 w-4 mr-2" />
-                          Remove Member
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </div>
               </div>
             </CardContent>
           </Card>

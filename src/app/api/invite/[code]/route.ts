@@ -109,7 +109,6 @@ export async function POST(
         await tx.insert(groupMember).values({
           groupId: groupRecord.id,
           userId: session.user.id,
-          role: "member",
           joinedAt: new Date(),
         });
 
@@ -135,7 +134,6 @@ export async function POST(
       await db.insert(groupMember).values({
         groupId: groupRecord.id,
         userId: session.user.id,
-        role: "member",
         joinedAt: new Date(),
       });
 

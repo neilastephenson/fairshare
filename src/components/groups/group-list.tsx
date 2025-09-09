@@ -10,7 +10,6 @@ interface Group {
   name: string;
   description: string | null;
   createdAt: Date;
-  role: string;
 }
 
 interface GroupListProps {

@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { placeholderUser, groupMember } from "@/lib/schema";
+import { placeholderUser, groupMember, expense, expenseParticipant } from "@/lib/schema";
 import { eq, and } from "drizzle-orm";
 
 // GET /api/groups/[id]/placeholder-users - Get all placeholder users in a group
@@ -38,13 +38,43 @@ export async function GET(
     }
 
     // Get all placeholder users in the group
-    const placeholderUsers = await db
+    const placeholders = await db
       .select()
       .from(placeholderUser)
       .where(eq(placeholderUser.groupId, groupId))
       .orderBy(placeholderUser.createdAt);
 
-    return NextResponse.json({ placeholderUsers });
+    // Check for expenses for each placeholder user
+    const placeholderUsersWithExpenseInfo = await Promise.all(
+      placeholders.map(async (placeholder) => {
+        // Check if placeholder has expenses as payer
+        const expensesAsPayer = await db
+          .select({ count: expense.id })
+          .from(expense)
+          .where(and(
+            eq(expense.paidBy, placeholder.id),
+            eq(expense.paidByType, "placeholder")
+          ));
+
+        // Check if placeholder has expenses as participant
+        const expensesAsParticipant = await db
+          .select({ count: expenseParticipant.id })
+          .from(expenseParticipant)
+          .where(and(
+            eq(expenseParticipant.userId, placeholder.id),
+            eq(expenseParticipant.userType, "placeholder")
+          ));
+
+        const hasExpenses = expensesAsPayer.length > 0 || expensesAsParticipant.length > 0;
+
+        return {
+          ...placeholder,
+          hasExpenses
+        };
+      })
+    );
+
+    return NextResponse.json({ placeholderUsers: placeholderUsersWithExpenseInfo });
   } catch (error) {
     console.error("Error fetching placeholder users:", error);
     return NextResponse.json(
@@ -134,71 +164,3 @@ export async function POST(
   }
 }
 
-// DELETE /api/groups/[id]/placeholder-users/[placeholderId] - Delete a placeholder user
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string; placeholderId: string }> }
-) {
-  try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { id: groupId, placeholderId } = await params;
-
-    // Check if user is an admin of the group
-    const membership = await db
-      .select()
-      .from(groupMember)
-      .where(
-        and(
-          eq(groupMember.groupId, groupId),
-          eq(groupMember.userId, session.user.id)
-        )
-      )
-      .limit(1);
-
-    if (membership.length === 0) {
-      return NextResponse.json({ error: "Not a member of this group" }, { status: 403 });
-    }
-
-    if (membership[0].role !== "admin") {
-      return NextResponse.json({ error: "Only admins can delete placeholder users" }, { status: 403 });
-    }
-
-    // Check if the placeholder user exists and belongs to this group
-    const placeholder = await db
-      .select()
-      .from(placeholderUser)
-      .where(
-        and(
-          eq(placeholderUser.id, placeholderId),
-          eq(placeholderUser.groupId, groupId)
-        )
-      )
-      .limit(1);
-
-    if (placeholder.length === 0) {
-      return NextResponse.json({ error: "Placeholder user not found" }, { status: 404 });
-    }
-
-    // Delete the placeholder user
-    await db
-      .delete(placeholderUser)
-      .where(eq(placeholderUser.id, placeholderId));
-
-    // Note: We don't log activity for placeholder deletion to avoid cluttering the activity log
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Error deleting placeholder user:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
-}

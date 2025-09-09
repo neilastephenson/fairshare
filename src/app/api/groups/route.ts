@@ -45,11 +45,10 @@ export async function POST(request: NextRequest) {
       })
       .returning();
 
-    // Add the creator as an admin member
+    // Add the creator as a member
     await db.insert(groupMember).values({
       groupId: newGroup.id,
       userId: session.user.id,
-      role: "admin",
     });
 
     // Log the group creation
@@ -86,7 +85,6 @@ export async function GET() {
     const userGroups = await db
       .select({
         group: group,
-        role: groupMember.role,
       })
       .from(groupMember)
       .innerJoin(group, eq(groupMember.groupId, group.id))

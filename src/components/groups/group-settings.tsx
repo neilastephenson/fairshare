@@ -29,7 +29,6 @@ interface GroupSettingsProps {
   groupName: string;
   groupDescription?: string | null;
   groupCurrency: string;
-  isAdmin: boolean;
 }
 
 export function GroupSettings({
@@ -37,7 +36,6 @@ export function GroupSettings({
   groupName,
   groupDescription,
   groupCurrency,
-  isAdmin,
 }: GroupSettingsProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -47,9 +45,6 @@ export function GroupSettings({
     currency: groupCurrency,
   });
 
-  if (!isAdmin) {
-    return null;
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,15 +89,15 @@ export function GroupSettings({
           Settings
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] w-full sm:w-auto h-full sm:h-auto max-h-full sm:max-h-[calc(100vh-2rem)] flex flex-col sm:block">
-        <form onSubmit={handleSubmit} className="flex flex-col h-full sm:h-auto">
-          <DialogHeader className="flex-shrink-0">
+      <DialogContent className="sm:max-w-[425px] h-full sm:h-auto w-full sm:w-auto max-w-full sm:max-w-[425px] p-0 sm:p-6 flex flex-col justify-start">
+        <form onSubmit={handleSubmit} className="flex flex-col h-full p-6 sm:p-0">
+          <DialogHeader className="mb-4">
             <DialogTitle>Group Settings</DialogTitle>
             <DialogDescription>
               Update your group&apos;s information and preferences.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4 flex-grow sm:flex-grow-0 overflow-y-auto">
+          <div className="grid gap-4 flex-1 overflow-y-auto">
             <div className="grid gap-2">
               <Label htmlFor="name">Group Name</Label>
               <Input
@@ -150,7 +145,7 @@ export function GroupSettings({
               </Select>
             </div>
           </div>
-          <DialogFooter className="flex-shrink-0 border-t sm:border-t-0 bg-background pt-4 sm:pt-0">
+          <DialogFooter className="mt-4 pt-4 border-t sm:border-t-0 sm:pt-0 sm:mt-6">
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {loading ? "Updating..." : "Save Changes"}

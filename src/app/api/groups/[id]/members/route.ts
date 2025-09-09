@@ -42,7 +42,6 @@ export async function GET(
         name: user.name,
         email: user.email,
         image: user.image,
-        role: groupMember.role,
         joinedAt: groupMember.joinedAt,
       })
       .from(groupMember)

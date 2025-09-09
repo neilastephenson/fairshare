@@ -21,16 +21,12 @@ export default async function GroupsPage() {
   const memberships = await db
     .select({
       group: group,
-      role: groupMember.role,
     })
     .from(groupMember)
     .innerJoin(group, eq(groupMember.groupId, group.id))
     .where(eq(groupMember.userId, session.user.id));
 
-  const userGroups = memberships.map(m => ({
-    ...m.group,
-    role: m.role,
-  }));
+  const userGroups = memberships.map(m => m.group);
 
   return (
     <main className="flex-1 container mx-auto px-4 py-8">
