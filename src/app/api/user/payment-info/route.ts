@@ -22,7 +22,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = bodyValidation.body;
+    const body = bodyValidation.body as { paymentInfo?: string };
     const { paymentInfo } = body;
 
     // Update the user's payment information

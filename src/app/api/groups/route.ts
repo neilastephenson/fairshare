@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = bodyValidation.body;
+    const body = bodyValidation.body as { name?: string; description?: string; currency?: string };
     const { name, description, currency } = body;
 
     if (!name?.trim()) {

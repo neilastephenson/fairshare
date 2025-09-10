@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     return bodyValidation.response;
   }
 
-  const { messages }: { messages: UIMessage[] } = bodyValidation.body || {};
+  const { messages }: { messages?: UIMessage[] } = bodyValidation.body || {};
 
   // Validate input
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
