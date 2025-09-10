@@ -111,9 +111,11 @@ export function ActiveReceiptSessions({
         return (
           <Card key={session.id} className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
             <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="relative">
+              {/* Mobile-first layout */}
+              <div className="space-y-3">
+                {/* Header row with avatar and main info */}
+                <div className="flex items-start gap-3">
+                  <div className="relative flex-shrink-0">
                     <Avatar className="h-10 w-10">
                       {session.creator.image && (
                         <AvatarImage src={session.creator.image} />
@@ -122,47 +124,55 @@ export function ActiveReceiptSessions({
                         {session.creator.name.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-green-500 border-2 border-white rounded-full animate-pulse" />
+                    <div className="absolute -bottom-1 -right-1 h-3 w-3 bg-green-500 border-2 border-white rounded-full animate-pulse" />
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-sm truncate">
-                        {session.merchantName || "Receipt Split"}
-                      </h3>
-                      <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
-                        <Users className="h-3 w-3 mr-1" />
-                        Live
-                      </Badge>
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-semibold text-base leading-tight">
+                          {session.merchantName || "Receipt Split"}
+                        </h3>
+                        <Badge variant="secondary" className="text-xs bg-primary/10 text-primary flex-shrink-0">
+                          <Users className="h-3 w-3 mr-1" />
+                          Live
+                        </Badge>
+                      </div>
+                      
+                      {/* Amount - prominent on mobile */}
+                      <div className="text-lg font-bold text-foreground flex-shrink-0">
+                        {formatAmount(parseFloat(session.totalAmount), currency)}
+                      </div>
                     </div>
                     
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <span>by {isCreator ? "You" : session.creator.name}</span>
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {getTimeRemaining(session.expiresAt)}
-                      </span>
-                      <span className="font-medium text-foreground">
-                        {formatAmount(parseFloat(session.totalAmount), currency)}
-                      </span>
+                    {/* Creator info */}
+                    <div className="text-sm text-muted-foreground mb-1">
+                      by {isCreator ? "You" : session.creator.name}
                     </div>
                   </div>
                 </div>
                 
-                <Button 
-                  size="sm" 
-                  onClick={() => joinSession(session.id)}
-                  className="ml-3 shrink-0"
-                >
-                  {isCreator ? "Continue" : "Join Split"}
-                  <ArrowRight className="h-3 w-3 ml-1" />
-                </Button>
-              </div>
-              
-              <div className="text-xs text-muted-foreground mt-2">
-                📱 {isCreator ? "Your" : `${session.creator.name}'s`} receipt is ready for claiming
+                {/* Info row */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <span>{getTimeRemaining(session.expiresAt)}</span>
+                  </div>
+                  
+                  <Button 
+                    onClick={() => joinSession(session.id)}
+                    className="flex-shrink-0"
+                    size="default"
+                  >
+                    {isCreator ? "Continue" : "Join Split"}
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </div>
+                
+                {/* Description */}
+                <div className="text-sm text-muted-foreground bg-muted/30 rounded-md px-3 py-2">
+                  📱 {isCreator ? "Your" : `${session.creator.name}'s`} receipt is ready for claiming
+                </div>
               </div>
             </CardContent>
           </Card>
