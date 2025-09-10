@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, numeric, uuid, index } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, numeric, uuid, index, integer } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -78,6 +78,7 @@ export const groupMember = pgTable("groupMember", {
   userId: text("userId")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
+  role: text("role").notNull().default("member"), // Keep existing role column
   joinedAt: timestamp("joinedAt").notNull().defaultNow(),
 }, (table) => {
   return {
@@ -155,5 +156,65 @@ export const activityLog = pgTable("activityLog", {
 }, (table) => {
   return {
     groupIdx: index("activity_log_group_idx").on(table.groupId),
+  };
+});
+
+// Receipt processing tables
+export const receiptSession = pgTable("receiptSession", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  groupId: uuid("groupId")
+    .notNull()
+    .references(() => group.id, { onDelete: "cascade" }),
+  createdBy: text("createdBy")
+    .notNull()
+    .references(() => user.id, { onDelete: "restrict" }),
+  merchantName: text("merchantName"),
+  receiptDate: timestamp("receiptDate"),
+  subtotal: numeric("subtotal", { precision: 12, scale: 2 }).notNull(),
+  taxAmount: numeric("taxAmount", { precision: 12, scale: 2 }).notNull().default("0"),
+  tipAmount: numeric("tipAmount", { precision: 12, scale: 2 }).notNull().default("0"),
+  totalAmount: numeric("totalAmount", { precision: 12, scale: 2 }).notNull(),
+  status: text("status").notNull().default("processing"), // 'processing', 'claiming', 'completed', 'cancelled'
+  participants: text("participants"), // JSON array of participant objects
+  expiresAt: timestamp("expiresAt").notNull(),
+  expenseId: uuid("expenseId").references(() => expense.id), // Link to final expense
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+}, (table) => {
+  return {
+    groupIdx: index("receipt_session_group_idx").on(table.groupId),
+    statusIdx: index("receipt_session_status_idx").on(table.status),
+    expiresAtIdx: index("receipt_session_expires_at_idx").on(table.expiresAt),
+  };
+});
+
+export const receiptItem = pgTable("receiptItem", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  receiptSessionId: uuid("receiptSessionId")
+    .notNull()
+    .references(() => receiptSession.id, { onDelete: "cascade" }),
+  itemName: text("itemName").notNull(),
+  itemPrice: numeric("itemPrice", { precision: 12, scale: 2 }).notNull(),
+  orderIndex: integer("orderIndex").notNull(), // preserve order from receipt
+  isSplitItem: boolean("isSplitItem").notNull().default(false), // true for virtual split items
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+}, (table) => {
+  return {
+    sessionIdx: index("receipt_item_session_idx").on(table.receiptSessionId),
+  };
+});
+
+export const receiptItemClaim = pgTable("receiptItemClaim", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  receiptItemId: uuid("receiptItemId")
+    .notNull()
+    .references(() => receiptItem.id, { onDelete: "cascade" }),
+  userId: text("userId").notNull(), // Can be user ID or placeholder ID
+  userType: text("userType").notNull().default("user"), // 'user' or 'placeholder'
+  claimedAt: timestamp("claimedAt").notNull().defaultNow(),
+}, (table) => {
+  return {
+    itemIdx: index("receipt_item_claim_item_idx").on(table.receiptItemId),
+    userIdx: index("receipt_item_claim_user_idx").on(table.userId),
   };
 });

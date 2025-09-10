@@ -52,7 +52,22 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(pnpm add:*)",
-      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_wRX2HSAR2o/**)"
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_wRX2HSAR2o/**)",
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_TOxeqNvQQE/**)",
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_AP0WrcXjpl/**)",
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_7Rw14y0xXA/**)",
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_HyA6HymrNo/**)",
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_qLQBVJby0E/**)",
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_Ajy9xWJk3B/**)",
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_kvnHC2GPWp/**)",
+      "Read(//Users/neilstephenson/Downloads/**)",
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_vdEMg6cvSC/**)",
+      "mcp__playwright-mobile__browser_resize",
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_xBT1TeGLk9/**)",
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_Ll8qrko4sU/**)",
+      "Read(//Users/neilstephenson/Library/Application Support/CleanShot/media/media_mqNR1LC1VS/**)",
+      "Bash(npx tsx:*)",
+      "Bash(curl:*)"
     ],
     "additionalDirectories": [
       "C:\\c\\Projects\\nextjs-better-auth-postgresql-starter-kit"

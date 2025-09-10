@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, Receipt, ArrowLeft, Check } from "lucide-react";
+import { Loader2, Receipt, ArrowLeft, Check, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { getCurrencySymbol } from "@/lib/currency";
 
@@ -170,6 +170,23 @@ export function EditExpenseDialog({
     return Math.abs(totalCustom - parseFloat(amount)) < 0.01;
   };
 
+  const payTheRest = (participantId: string) => {
+    const expenseAmount = parseFloat(amount || "0");
+    const currentTotal = Array.from(selectedMembers).reduce((sum, memberId) => {
+      if (memberId === participantId) return sum; // Skip this participant
+      return sum + (parseFloat(customAmounts[memberId]) || 0);
+    }, 0);
+    
+    const remainder = expenseAmount - currentTotal;
+    
+    setCustomAmounts(prev => ({
+      ...prev,
+      [participantId]: Math.max(0, remainder).toFixed(2)
+    }));
+    
+    toast.success(`Updated to pay the remaining ${getCurrencySymbol(currency)}${Math.max(0, remainder).toFixed(2)}`);
+  };
+
   const handleMemberToggle = (memberId: string, checked: boolean) => {
     const newSelected = new Set(selectedMembers);
     if (checked) {
@@ -259,10 +276,12 @@ export function EditExpenseDialog({
   };
 
   const getSplitTypeLabel = () => {
-    if (selectedMembers.size === participants.length) {
-      return "equally";
-    } else if (splitType === "equal") {
-      return `${selectedMembers.size} people`;
+    if (splitType === "equal") {
+      if (selectedMembers.size === participants.length) {
+        return "equally";
+      } else {
+        return `${selectedMembers.size} people`;
+      }
     } else {
       return "custom";
     }
@@ -427,13 +446,30 @@ export function EditExpenseDialog({
             </DialogHeader>
 
             <div className="px-6 py-4 space-y-4 flex-grow overflow-y-auto">
+              {/* Split Type Selection */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Split type</Label>
+                <RadioGroup value={splitType} onValueChange={(value) => setSplitType(value as "equal" | "custom")}>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="equal" id="equal-split" />
+                    <Label htmlFor="equal-split">Split equally</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="custom" id="custom-split" />
+                    <Label htmlFor="custom-split">Custom amounts</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {/* Participants */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Split equally between:</Label>
+                <Label className="text-sm font-medium">
+                  {splitType === "equal" ? "Split equally between:" : "Custom split:"}
+                </Label>
                 {participants.map((participant) => (
                   <div
                     key={participant.id}
-                    className="flex items-center space-x-3 py-2 hover:bg-muted/50 -mx-2 px-2 rounded-md cursor-pointer"
-                    onClick={() => handleMemberToggle(participant.id, !selectedMembers.has(participant.id))}
+                    className="flex items-center space-x-3 py-2"
                   >
                     <Checkbox
                       id={`split-${participant.id}`}
@@ -442,35 +478,83 @@ export function EditExpenseDialog({
                         handleMemberToggle(participant.id, checked as boolean)
                       }
                     />
-                    <Label 
-                      htmlFor={`split-${participant.id}`}
-                      className="flex items-center gap-2 cursor-pointer flex-1 font-normal"
-                    >
-                      <Avatar className="h-8 w-8">
-                        {participant.type === "user" && participant.image && (
-                          <AvatarImage src={participant.image} />
-                        )}
-                        <AvatarFallback className="text-xs">
-                          {participant.name.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="font-medium">
-                          {participant.name}
-                        </div>
-                        {participant.type === "placeholder" && (
-                          <div className="text-xs text-muted-foreground">Pending</div>
+                    <Avatar className="h-8 w-8">
+                      {participant.type === "user" && participant.image && (
+                        <AvatarImage src={participant.image} />
+                      )}
+                      <AvatarFallback className="text-xs">
+                        {participant.name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="font-medium">
+                        {participant.name}
+                      </div>
+                      {participant.type === "placeholder" && (
+                        <div className="text-xs text-muted-foreground">Pending</div>
+                      )}
+                    </div>
+                    {selectedMembers.has(participant.id) && (
+                      <div className="flex items-center gap-1">
+                        {splitType === "custom" ? (
+                          <>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={customAmounts[participant.id] || "0.00"}
+                              onChange={(e) => setCustomAmounts(prev => ({
+                                ...prev,
+                                [participant.id]: e.target.value
+                              }))}
+                              className="w-20 h-8 text-sm"
+                              placeholder="0.00"
+                            />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 hover:bg-primary/10"
+                              onClick={() => payTheRest(participant.id)}
+                              title="Pay the rest"
+                            >
+                              <Wand2 className="h-3 w-3 text-primary" />
+                            </Button>
+                          </>
+                        ) : (
+                          <span className="text-sm text-muted-foreground w-20 text-right">
+                            {getCurrencySymbol(currency)}{calculateSplitAmounts()[participant.id] || "0.00"}
+                          </span>
                         )}
                       </div>
-                      {selectedMembers.has(participant.id) && amount && (
-                        <span className="text-sm text-muted-foreground">
-                          {getCurrencySymbol(currency)}{(parseFloat(amount) / selectedMembers.size).toFixed(2)}
-                        </span>
-                      )}
-                    </Label>
+                    )}
                   </div>
                 ))}
               </div>
+
+              {/* Total validation for custom split */}
+              {splitType === "custom" && selectedMembers.size > 0 && (
+                <div className="mt-4 p-3 bg-muted/50 rounded-md">
+                  <div className="flex justify-between items-center text-sm">
+                    <span>Total custom amounts:</span>
+                    <span className={`font-medium ${validateCustomAmounts() ? 'text-green-600' : 'text-red-600'}`}>
+                      {getCurrencySymbol(currency)}{Array.from(selectedMembers).reduce((sum, id) => 
+                        sum + (parseFloat(customAmounts[id]) || 0), 0
+                      ).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span>Expected total:</span>
+                    <span className="font-medium">
+                      {getCurrencySymbol(currency)}{parseFloat(amount || "0").toFixed(2)}
+                    </span>
+                  </div>
+                  {!validateCustomAmounts() && (
+                    <div className="text-xs text-red-600 mt-1">
+                      Custom amounts must add up to the total expense amount.
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="px-6 pb-6 flex-shrink-0 border-t sm:border-t-0 bg-background">

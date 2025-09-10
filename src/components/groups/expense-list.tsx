@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 // Removed unused Separator import
-import { AddExpenseDialog } from "./add-expense-dialog";
+import { ScanSplitDialog } from "./scan-split-dialog";
 import { EditExpenseDialog } from "./edit-expense-dialog";
-import { Receipt, Plus, Trash2, Calendar, User, Edit, LayoutGrid, List } from "lucide-react";
+import { Receipt, Trash2, Calendar, User, Edit, LayoutGrid, List, Scan } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { formatAmount } from "@/lib/currency";
@@ -40,6 +40,11 @@ interface Expense {
       isPlaceholder?: boolean;
     };
   }>;
+  receiptSession?: {
+    id: string;
+    merchantName: string | null;
+    receiptDate: string | null;
+  } | null;
 }
 
 interface Member {
@@ -272,7 +277,7 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
               <span className="ml-1 hidden sm:inline">Compact</span>
             </Button>
           </div>
-          <AddExpenseDialog groupId={groupId} currency={currency} onExpenseAdded={handleExpenseAdded} />
+          <ScanSplitDialog groupId={groupId} currency={currency} onReceiptProcessed={handleExpenseAdded} />
         </div>
       </div>
 
@@ -282,14 +287,14 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
             <Receipt className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No expenses yet</h3>
             <p className="text-muted-foreground mb-6">
-              Start tracking shared expenses by adding the first one
+              Start splitting receipts with your group members
             </p>
-            <AddExpenseDialog groupId={groupId} currency={currency} onExpenseAdded={handleExpenseAdded}>
+            <ScanSplitDialog groupId={groupId} currency={currency} onReceiptProcessed={handleExpenseAdded}>
               <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add First Expense
+                <Scan className="h-4 w-4 mr-2" />
+                Scan & Split First Receipt
               </Button>
-            </AddExpenseDialog>
+            </ScanSplitDialog>
           </CardContent>
         </Card>
       ) : (
@@ -314,9 +319,16 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between w-full">
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-sm leading-tight mb-1">
-                            {expense.description}
-                          </h3>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-medium text-sm leading-tight">
+                              {expense.description}
+                            </h3>
+                            {expense.receiptSession && (
+                              <div title="Created from receipt scan">
+                                <Receipt className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                              </div>
+                            )}
+                          </div>
                           {expense.category && (
                             <Badge variant="secondary" className="text-xs mb-2">
                               {expense.category}
@@ -393,6 +405,11 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
                               <h3 className="font-semibold truncate">
                                 {expense.description}
                               </h3>
+                              {expense.receiptSession && (
+                                <div title="Created from receipt scan">
+                                  <Receipt className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                </div>
+                              )}
                               {expense.category && (
                                 <Badge variant="secondary" className="text-xs flex-shrink-0">
                                   {expense.category}

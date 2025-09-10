@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { groupMember, expense, expenseParticipant, user, activityLog, placeholderUser } from "@/lib/schema";
+import { groupMember, expense, expenseParticipant, user, activityLog, placeholderUser, receiptSession } from "@/lib/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { z } from "zod";
 
@@ -49,16 +49,26 @@ export async function GET(
       return NextResponse.json({ error: "Not a member of this group" }, { status: 403 });
     }
 
-    // Fetch expenses
+    // Fetch expenses with receipt session information
     const expenseRecords = await db
-      .select()
+      .select({
+        expense,
+        receiptSession: {
+          id: receiptSession.id,
+          merchantName: receiptSession.merchantName,
+          receiptDate: receiptSession.receiptDate,
+        },
+      })
       .from(expense)
+      .leftJoin(receiptSession, eq(receiptSession.expenseId, expense.id))
       .where(eq(expense.groupId, groupId))
       .orderBy(desc(expense.createdAt));
 
     // Process expenses to get payer information
     const expenses = await Promise.all(
-      expenseRecords.map(async (exp) => {
+      expenseRecords.map(async (expRecord) => {
+        const exp = expRecord.expense;
+        const receipt = expRecord.receiptSession;
         let paidByInfo;
         
         if (exp.paidByType === "placeholder") {
@@ -112,6 +122,7 @@ export async function GET(
         return {
           expense: exp,
           paidBy: paidByInfo,
+          receiptSession: receipt,
         };
       })
     );
@@ -195,6 +206,7 @@ export async function GET(
           ...expenseRecord.expense,
           paidBy: expenseRecord.paidBy,
           participants: participants,
+          receiptSession: expenseRecord.receiptSession,
         };
       })
     );
