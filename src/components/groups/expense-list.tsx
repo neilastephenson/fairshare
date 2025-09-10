@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 // Removed unused Separator import
+import { AddExpenseDialog } from "./add-expense-dialog";
 import { ScanSplitDialog } from "./scan-split-dialog";
 import { EditExpenseDialog } from "./edit-expense-dialog";
-import { Receipt, Trash2, Calendar, User, Edit, LayoutGrid, List, Scan } from "lucide-react";
+import { Receipt, Trash2, Calendar, User, Edit, LayoutGrid, List, Scan, Plus } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { formatAmount } from "@/lib/currency";
@@ -277,7 +278,10 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
               <span className="ml-1 hidden sm:inline">Compact</span>
             </Button>
           </div>
-          <ScanSplitDialog groupId={groupId} currency={currency} onReceiptProcessed={handleExpenseAdded} />
+          <div className="flex gap-2">
+            <AddExpenseDialog groupId={groupId} currency={currency} onExpenseAdded={handleExpenseAdded} />
+            <ScanSplitDialog groupId={groupId} currency={currency} onReceiptProcessed={handleExpenseAdded} />
+          </div>
         </div>
       </div>
 
@@ -287,14 +291,22 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
             <Receipt className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No expenses yet</h3>
             <p className="text-muted-foreground mb-6">
-              Start splitting receipts with your group members
+              Start tracking shared expenses by adding one manually or scanning a receipt
             </p>
-            <ScanSplitDialog groupId={groupId} currency={currency} onReceiptProcessed={handleExpenseAdded}>
-              <Button>
-                <Scan className="h-4 w-4 mr-2" />
-                Scan & Split First Receipt
-              </Button>
-            </ScanSplitDialog>
+            <div className="flex gap-3 justify-center">
+              <AddExpenseDialog groupId={groupId} currency={currency} onExpenseAdded={handleExpenseAdded}>
+                <Button variant="outline">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Expense
+                </Button>
+              </AddExpenseDialog>
+              <ScanSplitDialog groupId={groupId} currency={currency} onReceiptProcessed={handleExpenseAdded}>
+                <Button>
+                  <Scan className="h-4 w-4 mr-2" />
+                  Scan & Split
+                </Button>
+              </ScanSplitDialog>
+            </div>
           </CardContent>
         </Card>
       ) : (
