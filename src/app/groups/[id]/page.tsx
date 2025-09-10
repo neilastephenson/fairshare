@@ -13,6 +13,7 @@ import { SettleUpView } from "@/components/groups/settle-up-view";
 import { ActivityLog } from "@/components/groups/activity-log";
 import { InviteSection } from "@/components/groups/invite-section";
 import { GroupSettings } from "@/components/groups/group-settings";
+import { ActiveReceiptSessions } from "@/components/groups/active-receipt-sessions";
 import { Users, Receipt, Calculator, CreditCard, Activity } from "lucide-react";
 
 interface GroupPageProps {
@@ -89,6 +90,14 @@ export default async function GroupPage({ params }: GroupPageProps) {
           
         </div>
 
+        {/* Active Receipt Sessions */}
+        <div className="mb-6">
+          <ActiveReceiptSessions 
+            groupId={groupId}
+            currency={groupInfo.group.currency}
+            currentUserId={session.user.id}
+          />
+        </div>
 
         {/* Main Tabs */}
         <Tabs defaultValue="expenses" className="w-full min-w-0">
