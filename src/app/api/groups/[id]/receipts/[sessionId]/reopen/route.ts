@@ -7,7 +7,7 @@ import { eq, and } from "drizzle-orm";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string; sessionId: string } }
+  { params }: { params: Promise<{ id: string; sessionId: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -18,7 +18,7 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id: groupId, sessionId } = params;
+    const { id: groupId, sessionId } = await params;
 
     // Verify user is a member of the group
     const membership = await db
