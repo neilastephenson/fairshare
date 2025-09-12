@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 
 interface RealtimeEvent {
   type: string;
@@ -81,15 +81,15 @@ export function useReceiptRealtime({
 
         switch (data.type) {
           case "connected":
-            toast.success("Real-time updates enabled ⚡", { duration: 2000 });
+            // toast.success("Real-time updates enabled ⚡", { duration: 2000 });
             break;
 
           case "item_claimed":
             if (data.userId && data.userId !== currentUserId) {
-              toast.success(
-                `${data.userName} claimed "${data.itemName}" 🎉`,
-                { duration: 3000 }
-              );
+              // toast.success(
+              //   `${data.userName} claimed "${data.itemName}" 🎉`,
+              //   { duration: 3000 }
+              // );
             }
             // Always update the UI, even for own actions
             console.log("Triggering UI update for item_claimed");
@@ -98,10 +98,10 @@ export function useReceiptRealtime({
 
           case "item_unclaimed":
             if (data.userId && data.userId !== currentUserId) {
-              toast.info(
-                `${data.userName} removed themselves from "${data.itemName}"`,
-                { duration: 3000 }
-              );
+              // toast.info(
+              //   `${data.userName} removed themselves from "${data.itemName}"`,
+              //   { duration: 3000 }
+              // );
             }
             // Always update the UI, even for own actions
             console.log("Triggering UI update for item_unclaimed");
@@ -111,10 +111,10 @@ export function useReceiptRealtime({
           case "user_joined":
             if (data.userId && data.userId !== currentUserId && onUserJoinedRef.current) {
               onUserJoinedRef.current(data.userId, data.userName || "Someone");
-              toast.info(
-                `${data.userName} joined the receipt`,
-                { duration: 2000 }
-              );
+              // toast.info(
+              //   `${data.userName} joined the receipt`,
+              //   { duration: 2000 }
+              // );
             }
             break;
 

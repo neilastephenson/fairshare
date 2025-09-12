@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { Receipt, Clock, ArrowLeft, Wifi, WifiOff } from "lucide-react";
-import { toast } from "sonner";
+import { Receipt, Clock, ArrowLeft, Wifi, WifiOff, X } from "lucide-react";
+// import { toast } from "sonner";
 import { formatAmount } from "@/lib/currency";
 import { useRouter } from "next/navigation";
 import { useReceiptRealtime } from "@/hooks/useReceiptRealtime";
@@ -46,9 +46,11 @@ interface ReceiptSession {
     name: string;
     image: string | null;
     type: "user" | "placeholder";
-  }>;
+  }> & { _sessionController?: { userId: string; reopenedAt: string } };
   expiresAt: string;
   createdAt: string;
+  createdBy: string;
+  expenseId?: string;
 }
 
 interface ReceiptClaimingInterfaceProps {
@@ -83,12 +85,12 @@ export function ReceiptClaimingInterface({
         console.error("API error:", errorData);
         
         if (response.status === 404) {
-          toast.error("Receipt session not found");
+          // toast.error("Receipt session not found");
           router.push(`/groups/${groupId}`);
           return;
         }
         if (response.status === 410) {
-          toast.error("Receipt session has expired");
+          // toast.error("Receipt session has expired");
           router.push(`/groups/${groupId}`);
           return;
         }
@@ -101,7 +103,7 @@ export function ReceiptClaimingInterface({
       setItems(data.items);
     } catch (error) {
       console.error("Error fetching receipt data:", error);
-      toast.error("Failed to load receipt data");
+      // toast.error("Failed to load receipt data");
     } finally {
       setIsLoading(false);
     }
@@ -167,11 +169,11 @@ export function ReceiptClaimingInterface({
       // Real-time updates will also trigger this, but this ensures it works even if SSE fails
       await fetchReceiptData();
       
-      toast.success(action === "claim" ? "Item claimed! 🎉" : "Item unclaimed");
+      // toast.success(action === "claim" ? "Item claimed! 🎉" : "Item unclaimed");
       
     } catch (error) {
       console.error(`Error ${action}ing item:`, error);
-      toast.error(error instanceof Error ? error.message : `Failed to ${action} item`);
+      // toast.error(error instanceof Error ? error.message : `Failed to ${action} item`);
     } finally {
       setClaimingItems(prev => {
         const newSet = new Set(prev);
@@ -201,16 +203,76 @@ export function ReceiptClaimingInterface({
 
       await response.json();
       
-      toast.success("Expense created successfully! 🎉");
+      // toast.success("Expense created successfully! 🎉");
       
       // Navigate back to group expenses
       router.push(`/groups/${groupId}`);
       
     } catch (error) {
       console.error('Error creating expense:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create expense');
+      // toast.error(error instanceof Error ? error.message : 'Failed to create expense');
     } finally {
       setCreatingExpense(false);
+    }
+  };
+
+  const handleReopenSession = async () => {
+    if (!session) return;
+    
+    setCreatingExpense(true); // Reuse the same loading state
+    
+    try {
+      const response = await fetch(`/api/groups/${groupId}/receipts/${sessionId}/reopen`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to re-open session');
+      }
+
+      // Refresh the data to show the updated session status
+      await fetchReceiptData();
+      
+    } catch (error) {
+      console.error('Error re-opening session:', error);
+      // toast.error(error instanceof Error ? error.message : 'Failed to re-open session');
+    } finally {
+      setCreatingExpense(false);
+    }
+  };
+
+  const handleCancelSession = async () => {
+    if (!session) return;
+    
+    const confirmCancel = window.confirm(
+      "Are you sure you want to cancel this receipt session? This action cannot be undone."
+    );
+    
+    if (!confirmCancel) return;
+    
+    try {
+      const response = await fetch(`/api/groups/${groupId}/receipts/${sessionId}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to cancel session');
+      }
+
+      // Navigate back to group expenses
+      router.push(`/groups/${groupId}`);
+      
+    } catch (error) {
+      console.error('Error canceling session:', error);
+      // toast.error(error instanceof Error ? error.message : 'Failed to cancel session');
     }
   };
 
@@ -220,9 +282,18 @@ export function ReceiptClaimingInterface({
     );
   };
 
+  // Helper function to identify service charge items
+  const isServiceChargeItem = (item: ReceiptItem) => {
+    const name = item.name.toLowerCase();
+    return name.includes('service') && (name.includes('charge') || name.includes('fee')) || 
+           name.includes('gratuity') || 
+           (name.includes('tip') && !name.includes('tips'));
+  };
+
   const calculateUserTotal = () => {
     let total = 0;
-    items.forEach(item => {
+    // Only calculate for regular items, not service charges
+    items.filter(item => !isServiceChargeItem(item)).forEach(item => {
       if (isItemClaimedByCurrentUser(item)) {
         const shareAmount = item.claims.length > 0 ? item.price / item.claims.length : 0;
         total += shareAmount;
@@ -232,21 +303,31 @@ export function ReceiptClaimingInterface({
   };
 
   const calculateProgress = () => {
-    const totalItems = items.length;
-    const claimedItems = items.filter(item => item.claims.length > 0).length;
+    // Only count regular items for progress, not service charges
+    const regularItems = items.filter(item => !isServiceChargeItem(item));
+    const totalItems = regularItems.length;
+    const claimedItems = regularItems.filter(item => item.claims.length > 0).length;
     return totalItems > 0 ? (claimedItems / totalItems) * 100 : 0;
   };
 
   const getUnclaimedItems = () => {
-    return items.filter(item => item.claims.length === 0);
+    // Only return unclaimed regular items, not service charges
+    return items.filter(item => !isServiceChargeItem(item) && item.claims.length === 0);
   };
 
   const calculateTotalWithTaxTip = () => {
     const unclaimedItems = getUnclaimedItems();
     const unclaimedTotal = unclaimedItems.reduce((sum, item) => sum + item.price, 0);
     const totalForUser = userTotal + (unclaimedTotal / (session?.participants?.length || 1));
+    
+    // Calculate service charge proportionally
+    const serviceChargeItems = items.filter(item => isServiceChargeItem(item));
+    const serviceChargeTotal = serviceChargeItems.reduce((sum, item) => sum + item.price, 0);
+    const regularItemsTotal = items.filter(item => !isServiceChargeItem(item)).reduce((sum, item) => sum + item.price, 0);
+    const userServiceCharge = regularItemsTotal > 0 ? (totalForUser / regularItemsTotal) * serviceChargeTotal : 0;
+    
     const taxTipMultiplier = session ? (session.tax + session.tip) / (session.subtotal || 1) : 0;
-    return totalForUser + (totalForUser * taxTipMultiplier);
+    return totalForUser + userServiceCharge + (totalForUser * taxTipMultiplier);
   };
 
   const getRemainingTime = () => {
@@ -289,6 +370,20 @@ export function ReceiptClaimingInterface({
   const progress = calculateProgress();
   const unclaimedItems = getUnclaimedItems();
   const totalWithSplitting = calculateTotalWithTaxTip();
+  
+  // Check authorization for different actions
+  const isOriginalAdmin = session?.createdBy === currentUserId;
+  const sessionController = session.participants?._sessionController;
+  const isSessionController = sessionController?.userId === currentUserId;
+  const canFinalize = isOriginalAdmin || isSessionController;
+  const isCompleted = session.status === "completed";
+  
+  // Separate service charges from regular items
+  const regularItems = items.filter(item => !isServiceChargeItem(item));
+  const serviceChargeItems = items.filter(item => isServiceChargeItem(item));
+  const serviceChargeTotal = serviceChargeItems.reduce((sum, item) => sum + item.price, 0);
+  const regularItemsTotal = regularItems.reduce((sum, item) => sum + item.price, 0);
+  const userServiceCharge = regularItemsTotal > 0 ? (userTotal + (unclaimedItems.reduce((sum, item) => sum + item.price, 0) / (session?.participants?.length || 1))) / regularItemsTotal * serviceChargeTotal : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
@@ -296,13 +391,23 @@ export function ReceiptClaimingInterface({
       <div className="bg-white border-b shadow-sm sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-start justify-between gap-2 sm:gap-4">
-            <Button
-              variant="ghost"
-              onClick={() => router.push(`/groups/${groupId}`)}
-              className="p-2 min-h-[44px] min-w-[44px] shrink-0"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                onClick={() => router.push(`/groups/${groupId}`)}
+                className="p-2 min-h-[44px] min-w-[44px] shrink-0"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={handleCancelSession}
+                className="p-2 min-h-[44px] min-w-[44px] shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                title="Cancel Session"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
             
             <div className="text-center flex-1 min-w-0">
               <h1 className="text-lg sm:text-xl font-bold truncate px-1">
@@ -419,7 +524,7 @@ export function ReceiptClaimingInterface({
         <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
           <CardContent className="p-0">
             <div className="divide-y divide-gray-100">
-              {items.map((item) => {
+              {regularItems.map((item) => {
                 const isClaimedByUser = isItemClaimedByCurrentUser(item);
                 const isBeingClaimed = claimingItems.has(item.id);
                 const sharePerPerson = item.claims.length > 0 ? item.price / item.claims.length : item.price;
@@ -523,6 +628,35 @@ export function ReceiptClaimingInterface({
           </CardContent>
         </Card>
 
+        {/* Service Charge Section */}
+        {serviceChargeItems.length > 0 && (
+          <Card className="bg-amber-50/50 backdrop-blur-sm border-0 shadow-lg">
+            <CardContent className="p-4 sm:p-6">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-base sm:text-lg text-gray-900">
+                    Service Charge / Tip
+                  </h3>
+                  <span className="text-lg sm:text-xl font-bold text-primary">
+                    {formatAmount(serviceChargeTotal, groupCurrency)}
+                  </span>
+                </div>
+                <div className="text-xs sm:text-sm text-gray-600">
+                  <div className="flex items-center justify-between">
+                    <span>Your share:</span>
+                    <span className="font-semibold">
+                      {formatAmount(userServiceCharge, groupCurrency)}
+                    </span>
+                  </div>
+                  <div className="mt-2 text-xs text-muted-foreground italic">
+                    Service charges are split proportionally based on each person&apos;s share of the bill
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Bottom Summary - Fixed Position with safe area support */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg safe-area-inset-bottom">
           <div className="max-w-4xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
@@ -544,43 +678,79 @@ export function ReceiptClaimingInterface({
                   {unclaimedItems.length > 0 && (
                     <> + {formatAmount(unclaimedItems.reduce((sum, item) => sum + item.price, 0) / (session?.participants?.length || 1), groupCurrency)} split</>
                   )}
-                  {' + tax/tip'}
+                  {serviceChargeTotal > 0 && (
+                    <> + {formatAmount(userServiceCharge, groupCurrency)} service</>
+                  )}
+                  {(session.tax > 0 || session.tip > 0) && ' + tax'}
                 </div>
               </div>
               
               <div className="sm:text-right">
-                <Button 
-                  size="lg"
-                  onClick={handleCreateExpense}
-                  disabled={creatingExpense || (userTotal === 0 && unclaimedItems.length === 0)}
-                  className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 min-h-[48px] sm:min-h-[44px]"
-                >
-                  <span className="sm:hidden">
-                    {creatingExpense ? (
-                      <>Creating...</>
-                    ) : userTotal === 0 && unclaimedItems.length === 0 ? (
-                      "Claim Items First"
-                    ) : (
-                      "Create Expense"
-                    )}
-                  </span>
-                  <span className="hidden sm:inline">
-                    {creatingExpense ? (
-                      <>Creating...</>
-                    ) : userTotal === 0 && unclaimedItems.length === 0 ? (
-                      "Claim Some Items"
-                    ) : (
-                      "Create Expense"
-                    )}
-                  </span>
-                </Button>
+                {isCompleted ? (
+                  // Session is completed - show re-open option
+                  <Button 
+                    size="lg"
+                    onClick={handleReopenSession}
+                    disabled={creatingExpense}
+                    className="w-full sm:w-auto bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 min-h-[48px] sm:min-h-[44px]"
+                  >
+                    <span className="sm:hidden">
+                      {creatingExpense ? "Re-opening..." : "Re-open to Edit"}
+                    </span>
+                    <span className="hidden sm:inline">
+                      {creatingExpense ? "Re-opening..." : "Re-open Session to Edit"}
+                    </span>
+                  </Button>
+                ) : canFinalize ? (
+                  // User can finalize the session
+                  <Button 
+                    size="lg"
+                    onClick={handleCreateExpense}
+                    disabled={creatingExpense || (userTotal === 0 && unclaimedItems.length === 0)}
+                    className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 min-h-[48px] sm:min-h-[44px]"
+                  >
+                    <span className="sm:hidden">
+                      {creatingExpense ? (
+                        session.expenseId ? "Updating..." : "Creating..."
+                      ) : userTotal === 0 && unclaimedItems.length === 0 ? (
+                        "Claim Items First"
+                      ) : session.expenseId ? (
+                        "Update Expense"
+                      ) : (
+                        "Create Expense"
+                      )}
+                    </span>
+                    <span className="hidden sm:inline">
+                      {creatingExpense ? (
+                        session.expenseId ? "Updating..." : "Creating..."
+                      ) : userTotal === 0 && unclaimedItems.length === 0 ? (
+                        "Claim Some Items"
+                      ) : session.expenseId ? (
+                        "Update Expense"
+                      ) : (
+                        "Create Expense"
+                      )}
+                    </span>
+                  </Button>
+                ) : (
+                  // User cannot finalize
+                  <div className="text-center text-xs sm:text-sm text-muted-foreground py-3 px-4 border rounded-lg bg-gray-50">
+                    <div className="font-medium mb-1">Waiting for authorization</div>
+                    <div>
+                      {sessionController ? 
+                        "The person who re-opened this session will finalize it" :
+                        "The session admin will create the final expense"
+                      }
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Add padding to account for fixed bottom bar - larger on mobile for safe area */}
-        <div className="h-32 sm:h-24"></div>
+        {/* Add padding to account for fixed bottom bar and service charge - larger on mobile for safe area */}
+        <div className={serviceChargeItems.length > 0 ? "h-48 sm:h-40" : "h-32 sm:h-24"}></div>
       </div>
     </div>
   );

@@ -15,7 +15,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Receipt, ArrowLeft, Check, Wand2 } from "lucide-react";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 import { getCurrencySymbol } from "@/lib/currency";
 
 interface Participant {
@@ -184,7 +184,7 @@ export function EditExpenseDialog({
       [participantId]: Math.max(0, remainder).toFixed(2)
     }));
     
-    toast.success(`Updated to pay the remaining ${getCurrencySymbol(currency)}${Math.max(0, remainder).toFixed(2)}`);
+    // toast.success(`Updated to pay the remaining ${getCurrencySymbol(currency)}${Math.max(0, remainder).toFixed(2)}`);
   };
 
   const handleMemberToggle = (memberId: string, checked: boolean) => {
@@ -218,12 +218,12 @@ export function EditExpenseDialog({
     e.preventDefault();
     
     if (!description.trim() || !amount || !paidBy || selectedMembers.size === 0) {
-      toast.error("Please fill in all required fields");
+      // toast.error("Please fill in all required fields");
       return;
     }
 
     if (!validateCustomAmounts()) {
-      toast.error("Split amounts must equal the total expense amount");
+      // toast.error("Split amounts must equal the total expense amount");
       return;
     }
 
@@ -264,12 +264,12 @@ export function EditExpenseDialog({
         throw new Error(error.error || "Failed to update expense");
       }
 
-      toast.success("Expense updated successfully!");
+      // toast.success("Expense updated successfully!");
       onOpenChange(false);
       onExpenseUpdated();
     } catch (error) {
       console.error("Error updating expense:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to update expense");
+      // toast.error(error instanceof Error ? error.message : "Failed to update expense");
     } finally {
       setIsLoading(false);
     }

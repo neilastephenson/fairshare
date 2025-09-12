@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 
 interface CreateGroupButtonProps {
   fullWidth?: boolean;
@@ -43,7 +43,7 @@ export function CreateGroupButton({ fullWidth = false }: CreateGroupButtonProps)
     e.preventDefault();
     
     if (!formData.name.trim()) {
-      toast.error("Group name is required");
+      // toast.error("Group name is required");
       return;
     }
 
@@ -64,14 +64,14 @@ export function CreateGroupButton({ fullWidth = false }: CreateGroupButtonProps)
 
       const data = await response.json();
       
-      toast.success("Group created successfully!");
+      // toast.success("Group created successfully!");
       setOpen(false);
       setFormData({ name: "", description: "", currency: "GBP" });
       router.push(`/groups/${data.id}`);
       router.refresh();
     } catch (error) {
       console.error("Error creating group:", error);
-      toast.error("Failed to create group. Please try again.");
+      // toast.error("Failed to create group. Please try again.");
     } finally {
       setLoading(false);
     }

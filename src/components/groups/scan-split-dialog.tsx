@@ -13,7 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, Upload, Scan, Receipt, Loader2, X, Users, ChevronRight } from "lucide-react";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 interface ScanSplitDialogProps {
@@ -120,7 +120,7 @@ export function ScanSplitDialog({
       setSelectedParticipants(new Set(allParticipants.map(p => p.id)));
     } catch (error) {
       console.error('Error fetching participants:', error);
-      toast.error('Failed to load group members');
+      // toast.error('Failed to load group members');
     } finally {
       setLoadingParticipants(false);
     }
@@ -129,13 +129,13 @@ export function ScanSplitDialog({
   const handleFileSelect = useCallback((file: File) => {
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error("Please select an image file");
+      // toast.error("Please select an image file");
       return;
     }
 
     // Validate file size (10MB max)
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("File size must be less than 10MB");
+      // toast.error("File size must be less than 10MB");
       return;
     }
 
@@ -183,7 +183,7 @@ export function ScanSplitDialog({
 
   const handleProceedToProcessing = () => {
     if (selectedParticipants.size === 0) {
-      toast.error("Please select at least one participant");
+      // toast.error("Please select at least one participant");
       return;
     }
     setViewMode("processing");
@@ -192,7 +192,7 @@ export function ScanSplitDialog({
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      toast.error("Please select a receipt image");
+      // toast.error("Please select a receipt image");
       return;
     }
 
@@ -220,7 +220,7 @@ export function ScanSplitDialog({
 
       const data = await response.json();
       
-      toast.success("Receipt processed successfully!");
+      // toast.success("Receipt processed successfully!");
       
       // Close dialog and navigate to claiming interface
       setOpen(false);
@@ -231,7 +231,7 @@ export function ScanSplitDialog({
       
     } catch (error) {
       console.error("Error processing receipt:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to process receipt. Please try again.");
+      // toast.error(error instanceof Error ? error.message : "Failed to process receipt. Please try again.");
       setViewMode("participants");
     } finally {
       setIsProcessing(false);

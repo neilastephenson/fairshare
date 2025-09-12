@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Users, MoreHorizontal, UserCheck, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 import { AddPlaceholderDialog } from "./add-placeholder-dialog";
 
 interface Member {
@@ -65,7 +65,7 @@ export function MemberList({ groupId, currentUserId }: MemberListProps) {
       setPlaceholders(placeholdersData.placeholderUsers);
     } catch (error) {
       console.error("Error fetching members:", error);
-      toast.error("Failed to load members");
+      // toast.error("Failed to load members");
     } finally {
       setIsLoading(false);
     }
@@ -87,11 +87,11 @@ export function MemberList({ groupId, currentUserId }: MemberListProps) {
         throw new Error(error.error || "Failed to remove placeholder user");
       }
 
-      toast.success("Placeholder user removed");
+      // toast.success("Placeholder user removed");
       fetchMembers();
     } catch (error) {
       console.error("Error removing placeholder user:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to remove placeholder user");
+      // toast.error(error instanceof Error ? error.message : "Failed to remove placeholder user");
     }
   };
 

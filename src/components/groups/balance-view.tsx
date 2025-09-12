@@ -6,7 +6,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Calculator, DollarSign } from "lucide-react";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 import { formatAmount } from "@/lib/currency";
 
 interface Balance {
@@ -47,7 +47,7 @@ export function BalanceView({ groupId, currency = "GBP" }: BalanceViewProps) {
       setGroupTotals(data.totals);
     } catch (error) {
       console.error("Error fetching balances:", error);
-      toast.error("Failed to load balances");
+      // toast.error("Failed to load balances");
     } finally {
       setIsLoading(false);
     }

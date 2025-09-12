@@ -17,7 +17,7 @@ import {
   Calendar
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 import { formatAmount } from "@/lib/currency";
 
 interface ActivityItem {
@@ -134,7 +134,7 @@ export function ActivityLog({ groupId, currency = "GBP" }: ActivityLogProps) {
       setActivities(filteredActivities);
     } catch (error) {
       console.error("Error fetching activities:", error);
-      toast.error("Failed to load activity log");
+      // toast.error("Failed to load activity log");
     } finally {
       setIsLoading(false);
     }

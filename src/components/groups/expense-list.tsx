@@ -9,11 +9,12 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { AddExpenseDialog } from "./add-expense-dialog";
 import { ScanSplitDialog } from "./scan-split-dialog";
 import { EditExpenseDialog } from "./edit-expense-dialog";
-import { Receipt, Trash2, Calendar, User, Edit, LayoutGrid, List, Scan, Plus } from "lucide-react";
+import { Receipt, Trash2, Calendar, User, Edit, LayoutGrid, List, Scan, Plus, RotateCcw } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 import { formatAmount } from "@/lib/currency";
 import { useSession } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 interface Expense {
   id: string;
@@ -77,6 +78,7 @@ interface ExpenseListProps {
 
 export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
   const { data: session } = useSession();
+  const router = useRouter();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -134,7 +136,7 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
       setExpenses(data.expenses);
     } catch (error) {
       console.error("Error fetching expenses:", error);
-      toast.error("Failed to load expenses");
+      // toast.error("Failed to load expenses");
     }
   }, [groupId]);
 
@@ -214,11 +216,34 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
         throw new Error("Failed to delete expense");
       }
 
-      toast.success("Expense deleted");
+      // toast.success("Expense deleted");
       fetchExpenses();
     } catch (error) {
       console.error("Error deleting expense:", error);
-      toast.error("Failed to delete expense");
+      // toast.error("Failed to delete expense");
+    }
+  };
+
+  const handleReopenReceiptSession = async (receiptSessionId: string) => {
+    try {
+      const response = await fetch(`/api/groups/${groupId}/receipts/${receiptSessionId}/reopen`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to re-open session');
+      }
+
+      // Navigate to the receipt claiming interface
+      router.push(`/groups/${groupId}/receipts/${receiptSessionId}`);
+      
+    } catch (error) {
+      console.error('Error re-opening receipt session:', error);
+      // toast.error(error instanceof Error ? error.message : 'Failed to re-open receipt session');
     }
   };
 
@@ -374,6 +399,17 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
                     
                     {/* Compact actions - hidden by default, show on group hover */}
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                      {expense.receiptSession && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleReopenReceiptSession(expense.receiptSession!.id)}
+                          className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                          title="Re-open Receipt Session"
+                        >
+                          <RotateCcw className="h-3 w-3" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
@@ -497,6 +533,18 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
                         {formatDistanceToNow(new Date(expense.createdAt), { addSuffix: true })}
                       </span>
                       <div className="flex items-center gap-2">
+                        {expense.receiptSession && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleReopenReceiptSession(expense.receiptSession!.id)}
+                            className="text-muted-foreground hover:text-foreground"
+                            title="Re-open Receipt Session"
+                          >
+                            <RotateCcw className="h-4 w-4 mr-1" />
+                            <span className="hidden sm:inline">Re-open</span>
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"

@@ -16,7 +16,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Loader2, Receipt, ArrowLeft, Check } from "lucide-react";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 import { getCurrencySymbol } from "@/lib/currency";
 import { useSession } from "@/lib/auth-client";
 
@@ -129,7 +129,7 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
       setSelectedMembers(new Set(allIds));
     } catch (error) {
       console.error("Error fetching members:", error);
-      toast.error("Failed to load group members");
+      // toast.error("Failed to load group members");
     }
   }, [groupId, paidBy, session]);
 
@@ -227,12 +227,12 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
     e.preventDefault();
     
     if (!description.trim() || !amount || !paidBy || selectedMembers.size === 0) {
-      toast.error("Please fill in all required fields");
+      // toast.error("Please fill in all required fields");
       return;
     }
 
     if (!validateCustomAmounts()) {
-      toast.error("Custom split amounts must equal the total expense amount");
+      // toast.error("Custom split amounts must equal the total expense amount");
       return;
     }
 
@@ -273,13 +273,13 @@ export function AddExpenseDialog({ groupId, currency = "GBP", onExpenseAdded, ch
         throw new Error(error.error || "Failed to add expense");
       }
 
-      toast.success("Expense added successfully!");
+      // toast.success("Expense added successfully!");
       resetForm();
       setOpen(false);
       onExpenseAdded();
     } catch (error) {
       console.error("Error adding expense:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to add expense");
+      // toast.error(error instanceof Error ? error.message : "Failed to add expense");
     } finally {
       setIsLoading(false);
     }

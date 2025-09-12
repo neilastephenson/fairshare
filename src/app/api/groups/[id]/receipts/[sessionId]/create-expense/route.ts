@@ -65,9 +65,29 @@ export async function POST(
 
     const receiptSessionData = sessionData[0];
 
-    // Check if session has already been converted to an expense
-    if (receiptSessionData.expenseId) {
-      return NextResponse.json({ error: "Receipt has already been converted to an expense" }, { status: 400 });
+    // For reopened sessions, check if user has permission to close it
+    const isUpdate = !!receiptSessionData.expenseId;
+    if (isUpdate || receiptSessionData.status === "completed") {
+      // Parse participants to check session controller
+      let sessionController = null;
+      if (receiptSessionData.participants) {
+        try {
+          const participantsData = JSON.parse(receiptSessionData.participants);
+          sessionController = participantsData._sessionController;
+        } catch (e) {
+          console.error("Error parsing participants:", e);
+        }
+      }
+      
+      // Check authorization: original admin or person who reopened it
+      const isOriginalAdmin = receiptSessionData.createdBy === session.user.id;
+      const isSessionController = sessionController?.userId === session.user.id;
+      
+      if (!isOriginalAdmin && !isSessionController) {
+        return NextResponse.json({ 
+          error: "Only the session admin or the person who re-opened this session can finalize it" 
+        }, { status: 403 });
+      }
     }
 
     // Check if session has expired
@@ -247,21 +267,47 @@ export async function POST(
     // Create a unique description that includes merchant, date, and time for better identification
     const expenseDescription = `${merchantName} (${dateStr} ${timeStr})`;
     
-    console.log(`Creating expense with description: "${expenseDescription}"`);
+    console.log(`Processing expense with description: "${expenseDescription}"`);
 
-    // Create the expense
-    const [expenseRecord] = await db
-      .insert(expense)
-      .values({
-        groupId,
-        paidBy: session.user.id,
-        paidByType: "user",
-        description: expenseDescription,
-        amount: receiptSessionData.totalAmount,
-        category: null,
-        date: receiptSessionData.receiptDate || new Date(),
-      })
-      .returning();
+    let expenseRecord;
+    
+    if (isUpdate) {
+      // Update existing expense
+      console.log(`Updating existing expense: ${receiptSessionData.expenseId}`);
+      [expenseRecord] = await db
+        .update(expense)
+        .set({
+          paidBy: session.user.id,
+          paidByType: "user",
+          description: expenseDescription,
+          amount: receiptSessionData.totalAmount,
+          category: null,
+          date: receiptSessionData.receiptDate || new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(expense.id, receiptSessionData.expenseId!))
+        .returning();
+        
+      // Delete existing expense participants before recreating them
+      await db
+        .delete(expenseParticipant)
+        .where(eq(expenseParticipant.expenseId, receiptSessionData.expenseId!));
+    } else {
+      // Create new expense
+      console.log(`Creating new expense`);
+      [expenseRecord] = await db
+        .insert(expense)
+        .values({
+          groupId,
+          paidBy: session.user.id,
+          paidByType: "user",
+          description: expenseDescription,
+          amount: receiptSessionData.totalAmount,
+          category: null,
+          date: receiptSessionData.receiptDate || new Date(),
+        })
+        .returning();
+    }
 
     // Create expense participants with proper rounding to ensure total matches
     const expenseParticipants = [];
@@ -331,7 +377,7 @@ export async function POST(
     return NextResponse.json({
       success: true,
       expenseId: expenseRecord.id,
-      message: "Expense created successfully from receipt!",
+      message: isUpdate ? "Expense updated successfully from receipt!" : "Expense created successfully from receipt!",
     });
 
   } catch (error) {

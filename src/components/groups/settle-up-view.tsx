@@ -7,7 +7,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CreditCard, ArrowRight, CheckCircle, Eye, DollarSign, Check, History, Undo2 } from "lucide-react";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatAmount } from "@/lib/currency";
 
@@ -57,7 +57,7 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
       setSettlements(data.settlements);
     } catch (error) {
       console.error("Error fetching settlements:", error);
-      toast.error("Failed to load settlement suggestions");
+      // toast.error("Failed to load settlement suggestions");
     } finally {
       setIsLoading(false);
     }
@@ -104,13 +104,13 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
         setSettlements(prev => prev.filter((_, i) => i !== index));
         setSettledPayments(prev => [settledTransaction, ...prev]);
         
-        toast.success(`Payment of ${formatCurrency(transaction.amount)} marked as paid!`);
+        // toast.success(`Payment of ${formatCurrency(transaction.amount)} marked as paid!`);
       } else {
         throw new Error('Failed to mark payment as paid');
       }
     } catch (error) {
       console.error('Error marking payment as paid:', error);
-      toast.error('Failed to mark payment as paid. Please try again.');
+      // toast.error('Failed to mark payment as paid. Please try again.');
     } finally {
       setMarkingPaid(null);
     }
@@ -142,13 +142,13 @@ export function SettleUpView({ groupId, currency = "GBP" }: SettleUpViewProps) {
         setSettledPayments(prev => prev.filter((_, i) => i !== index));
         setSettlements(prev => [pendingTransaction, ...prev]);
         
-        toast.success(`Payment of ${formatCurrency(transaction.amount)} marked as unpaid`);
+        // toast.success(`Payment of ${formatCurrency(transaction.amount)} marked as unpaid`);
       } else {
         throw new Error('Failed to mark payment as unpaid');
       }
     } catch (error) {
       console.error('Error marking payment as unpaid:', error);
-      toast.error('Failed to mark payment as unpaid. Please try again.');
+      // toast.error('Failed to mark payment as unpaid. Please try again.');
     } finally {
       setMarkingUnpaid(null);
     }

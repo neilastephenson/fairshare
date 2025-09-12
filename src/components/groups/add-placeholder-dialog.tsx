@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UserPlus, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 
 interface AddPlaceholderDialogProps {
   groupId: string;
@@ -35,7 +35,7 @@ export function AddPlaceholderDialog({ groupId, onPlaceholderAdded, children }: 
     e.preventDefault();
 
     if (!name.trim()) {
-      toast.error("Name is required");
+      // toast.error("Name is required");
       return;
     }
 
@@ -54,13 +54,13 @@ export function AddPlaceholderDialog({ groupId, onPlaceholderAdded, children }: 
         throw new Error(error.error || "Failed to create placeholder user");
       }
 
-      toast.success(`Placeholder user "${name}" created`);
+      // toast.success(`Placeholder user "${name}" created`);
       resetForm();
       setOpen(false);
       onPlaceholderAdded();
     } catch (error) {
       console.error("Error creating placeholder user:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to create placeholder user");
+      // toast.error(error instanceof Error ? error.message : "Failed to create placeholder user");
     } finally {
       setIsLoading(false);
     }

@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { UserProfile } from "@/components/auth/user-profile";
-import { Receipt } from "lucide-react";
+import { Receipt, TestTube } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
 
 export function SiteHeader() {
   const { data: session } = useSession();
@@ -25,6 +26,15 @@ export function SiteHeader() {
           </Link>
         </h1>
         <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+          {/* Development test link */}
+          {process.env.NODE_ENV === 'development' && (
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/test-receipt">
+                <TestTube className="h-4 w-4 mr-2" />
+                Test Receipt
+              </Link>
+            </Button>
+          )}
           <UserProfile />
         </div>
       </div>

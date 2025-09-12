@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Settings, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 
 interface GroupSettingsProps {
   groupId: string;
@@ -50,7 +50,7 @@ export function GroupSettings({
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      toast.error("Group name is required");
+      // toast.error("Group name is required");
       return;
     }
 
@@ -69,13 +69,13 @@ export function GroupSettings({
         throw new Error("Failed to update group");
       }
       
-      toast.success("Group settings updated successfully!");
+      // toast.success("Group settings updated successfully!");
       setOpen(false);
       // Force a hard refresh to ensure the new currency is displayed
       window.location.reload();
     } catch (error) {
       console.error("Error updating group:", error);
-      toast.error("Failed to update group settings. Please try again.");
+      // toast.error("Failed to update group settings. Please try again.");
     } finally {
       setLoading(false);
     }

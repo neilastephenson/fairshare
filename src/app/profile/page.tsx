@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Mail, Calendar, Shield, ArrowLeft, CreditCard, Edit3, Save, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function ProfilePage() {
@@ -58,13 +58,13 @@ export default function ProfilePage() {
         const data = await response.json();
         setOriginalPaymentInfo(data.paymentInfo || "");
         setIsEditingPayment(false);
-        toast.success("Payment information updated successfully!");
+        // toast.success("Payment information updated successfully!");
       } else {
         throw new Error("Failed to update payment information");
       }
     } catch (error) {
       console.error("Error updating payment information:", error);
-      toast.error("Failed to update payment information");
+      // toast.error("Failed to update payment information");
     } finally {
       setIsSavingPaymentInfo(false);
     }

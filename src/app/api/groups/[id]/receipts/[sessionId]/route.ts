@@ -235,6 +235,8 @@ export async function GET(
         participants: sessionParticipants,
         expiresAt: receiptSessionData.expiresAt,
         createdAt: receiptSessionData.createdAt,
+        createdBy: receiptSessionData.createdBy,
+        expenseId: receiptSessionData.expenseId,
       },
       items,
     });

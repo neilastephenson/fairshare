@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { UserPlus, Loader2, UserCheck } from "lucide-react";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 
 interface JoinGroupFormProps {
   groupId: string;
@@ -70,14 +70,14 @@ export function JoinGroupForm({ groupId, groupName, inviteCode }: JoinGroupFormP
 
       if (selectedOption !== "new") {
         const placeholder = placeholders.find(p => p.id === selectedOption);
-        toast.success(`Successfully joined ${groupName} as ${placeholder?.name}!`);
+        // toast.success(`Successfully joined ${groupName} as ${placeholder?.name}!`);
       } else {
-        toast.success(`Successfully joined ${groupName}!`);
+        // toast.success(`Successfully joined ${groupName}!`);
       }
       router.push(`/groups/${groupId}`);
     } catch (error) {
       console.error("Error joining group:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to join group");
+      // toast.error(error instanceof Error ? error.message : "Failed to join group");
     } finally {
       setIsLoading(false);
     }

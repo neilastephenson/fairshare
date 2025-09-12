@@ -13,7 +13,7 @@ import {
   DialogTrigger 
 } from "@/components/ui/dialog";
 import { Copy, Check, Users, Link, UserPlus } from "lucide-react";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 
 interface InviteSectionProps {
   groupId: string;
@@ -29,10 +29,10 @@ export function InviteSection({ inviteCode }: InviteSectionProps) {
     try {
       await navigator.clipboard.writeText(inviteUrl);
       setCopied(true);
-      toast.success("Invite link copied to clipboard!");
+      // toast.success("Invite link copied to clipboard!");
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Failed to copy invite link");
+      // toast.error("Failed to copy invite link");
     }
   };
 
