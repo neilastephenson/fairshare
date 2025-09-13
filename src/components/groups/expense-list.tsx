@@ -9,7 +9,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { AddExpenseDialog } from "./add-expense-dialog";
 import { ScanSplitDialog } from "./scan-split-dialog";
 import { EditExpenseDialog } from "./edit-expense-dialog";
-import { Receipt, Trash2, Calendar, User, Edit, LayoutGrid, List, Scan, Plus, RotateCcw } from "lucide-react";
+import { Receipt, Trash2, Calendar, User, Edit, LayoutGrid, List, Scan, Plus, RotateCcw, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 // import { toast } from "sonner";
 import { formatAmount } from "@/lib/currency";
@@ -85,6 +85,8 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'full' | 'compact'>('full');
+  const [deletingExpenseId, setDeletingExpenseId] = useState<string | null>(null);
+  const [reopeningSessionId, setReopeningSessionId] = useState<string | null>(null);
 
   // Helper function to format names with surname initial for compact display
   const formatNameCompact = (name: string) => {
@@ -207,6 +209,7 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
   };
 
   const deleteExpense = async (expenseId: string) => {
+    setDeletingExpenseId(expenseId);
     try {
       const response = await fetch(`/api/groups/${groupId}/expenses/${expenseId}`, {
         method: "DELETE",
@@ -217,14 +220,17 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
       }
 
       // toast.success("Expense deleted");
-      fetchExpenses();
+      await fetchExpenses();
     } catch (error) {
       console.error("Error deleting expense:", error);
       // toast.error("Failed to delete expense");
+    } finally {
+      setDeletingExpenseId(null);
     }
   };
 
   const handleReopenReceiptSession = async (receiptSessionId: string) => {
+    setReopeningSessionId(receiptSessionId);
     try {
       const response = await fetch(`/api/groups/${groupId}/receipts/${receiptSessionId}/reopen`, {
         method: 'POST',
@@ -244,6 +250,7 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
     } catch (error) {
       console.error('Error re-opening receipt session:', error);
       // toast.error(error instanceof Error ? error.message : 'Failed to re-open receipt session');
+      setReopeningSessionId(null);
     }
   };
 
@@ -406,8 +413,13 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
                           onClick={() => handleReopenReceiptSession(expense.receiptSession!.id)}
                           className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
                           title="Re-open Receipt Session"
+                          disabled={reopeningSessionId === expense.receiptSession!.id}
                         >
-                          <RotateCcw className="h-3 w-3" />
+                          {reopeningSessionId === expense.receiptSession!.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <RotateCcw className="h-3 w-3" />
+                          )}
                         </Button>
                       )}
                       <Button
@@ -415,6 +427,7 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
                         size="sm"
                         onClick={() => handleEditExpense(expense)}
                         className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                        disabled={deletingExpenseId === expense.id}
                       >
                         <Edit className="h-3 w-3" />
                       </Button>
@@ -423,8 +436,13 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
                         size="sm"
                         onClick={() => deleteExpense(expense.id)}
                         className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                        disabled={deletingExpenseId === expense.id}
                       >
-                        <Trash2 className="h-3 w-3" />
+                        {deletingExpenseId === expense.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-3 w-3" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -540,8 +558,13 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
                             onClick={() => handleReopenReceiptSession(expense.receiptSession!.id)}
                             className="text-muted-foreground hover:text-foreground"
                             title="Re-open Receipt Session"
+                            disabled={reopeningSessionId === expense.receiptSession!.id}
                           >
-                            <RotateCcw className="h-4 w-4 mr-1" />
+                            {reopeningSessionId === expense.receiptSession!.id ? (
+                              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                            ) : (
+                              <RotateCcw className="h-4 w-4 mr-1" />
+                            )}
                             <span className="hidden sm:inline">Re-open</span>
                           </Button>
                         )}
@@ -550,6 +573,7 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
                           size="sm"
                           onClick={() => handleEditExpense(expense)}
                           className="text-muted-foreground hover:text-foreground"
+                          disabled={deletingExpenseId === expense.id}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -558,8 +582,13 @@ export function ExpenseList({ groupId, currency = "GBP" }: ExpenseListProps) {
                           size="sm"
                           onClick={() => deleteExpense(expense.id)}
                           className="text-destructive hover:text-destructive"
+                          disabled={deletingExpenseId === expense.id}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {deletingExpenseId === expense.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
                         </Button>
                       </div>
                     </div>

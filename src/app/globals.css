@@ -160,4 +160,43 @@
   html {
     overflow-x: hidden;
   }
+  
+  /* Better touch feedback for interactive elements */
+  button, 
+  [role="button"],
+  a,
+  .clickable {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    touch-action: manipulation;
+  }
+  
+  /* Add subtle scale effect on touch/click for better feedback */
+  button:not(:disabled):active,
+  [role="button"]:not(:disabled):active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease-in-out;
+  }
+  
+  /* Ensure smooth transitions for all interactive elements */
+  button,
+  [role="button"],
+  a {
+    transition: all 0.15s ease-in-out;
+  }
+  
+  /* Prevent text selection on double tap on mobile */
+  @media (max-width: 768px) {
+    button,
+    [role="button"] {
+      user-select: none;
+      -webkit-user-select: none;
+    }
+  }
+  
+  /* Add visual feedback for disabled state */
+  button:disabled,
+  [role="button"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }

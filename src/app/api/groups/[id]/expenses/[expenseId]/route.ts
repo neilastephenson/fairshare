@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { groupMember, expense, expenseParticipant, activityLog, placeholderUser } from "@/lib/schema";
+import { groupMember, expense, expenseParticipant, activityLog, placeholderUser, receiptSession } from "@/lib/schema";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 
@@ -255,6 +255,13 @@ export async function DELETE(
     if (existingExpense.length === 0) {
       return NextResponse.json({ error: "Expense not found" }, { status: 404 });
     }
+
+    // First, check if this expense is linked to any receipt sessions
+    // If so, unlink them by setting expenseId to null
+    await db
+      .update(receiptSession)
+      .set({ expenseId: null })
+      .where(eq(receiptSession.expenseId, expenseId));
 
     // Delete the expense (participants will be cascade deleted)
     await db
